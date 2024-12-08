@@ -86,3 +86,22 @@ P실무/
 ├── server.js # Node.js 서버 파일
 
 ├── package.json # Node.js 패키지 정보
+
+
+추가 구현 정보 
+
+감정 인식 모델 정확성을 위한 튜닝 필요함 ,  
+
+
+웨어러블 기기 Database 
+
+
+Promport Engineering 추가 
+
+
+감정 인식 모델 추출 감정 -> 대화형 모델 (Rasa)
+
+
+
+
+
