@@ -1,19 +1,30 @@
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
+// User 스키마 정의
+const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, '사용자 이름은 필수입니다.'],
   },
   email: {
     type: String,
-    required: true,
+    required: [true, '이메일은 필수입니다.'],
     unique: true,
   },
   age: {
     type: Number,
-    required: true,
+    default: 0,
   },
-}, { timestamps: true });
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-module.exports = mongoose.model('user', UserSchema);
+// User 모델 생성 및 내보내기
+module.exports = mongoose.model('User', userSchema);
+
