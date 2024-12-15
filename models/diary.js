@@ -1,11 +1,23 @@
-// models/Diary.js
 const mongoose = require('mongoose');
+require('./user'); // User 모델 등록
 
-const DiarySchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true }, // User와 연결
-    content: { type: String, required: true }, // 일기 내용
-    emotion: { type: String }, // 감정 분석 결과 (선택사항)
-    createdAt: { type: Date, default: Date.now } // 생성 날짜
+const diarySchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // User 모델 참조
+    required: [true, 'User ID는 필수 입력값입니다.'],
+  },
+  content: {
+    type: String,
+    required: [true, '일기 내용은 필수 입력값입니다.'],
+    trim: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    unique: true
+  },
 });
 
-module.exports = mongoose.model('Diary', DiarySchema);
+module.exports = mongoose.model('Diary', diarySchema);
+
