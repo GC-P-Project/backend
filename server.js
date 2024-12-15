@@ -12,8 +12,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware to parse JSON
 app.use(bodyParser.json());
-
 // MongoDB Connection
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
@@ -46,6 +46,13 @@ try {
   app.use('/api/diaries', require('./routes/diaries')); // Updated path to match `diaries.js`
 } catch (err) {
   console.error('Error loading diary routes:', err.message);
+}
+
+// Add the analysis routes
+try{
+  app.use('/api/analysis', require('./routes/analysis'));
+} catch(err){
+  console.error('Error loading analysis routes:', err.message);
 }
 
 // Global error handling middleware

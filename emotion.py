@@ -8,10 +8,9 @@ MODEL_NAME = "monologg/kobert"
 tokenizer = BertTokenizer.from_pretrained(MODEL_NAME)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(DEVICE)
-model = BertForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=7).to(DEVICE)  # 감정 범주 8개
+model = BertForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=7).to(DEVICE)  # 감정 범주 6개
 
-# 감정 레이블 매핑
-# label_map = {0: "기쁨", 1: "슬픔", 2: "분노", 3: "놀람", 4: "중립", 5: "공포", 6: "혐오", 7: "사랑"}
+# 감정 레이블 매핑 중립 빼고 6개로 하기
 label_map = {0: '행복', 1: '슬픔', 2: '분노', 3: '놀람', 4: '중립', 5: '공포', 6: '혐오'}
 
 # 샘플 감정 데이터셋 클래스 정의
@@ -49,9 +48,10 @@ class EmotionDataset(Dataset):
         }
 
 # 샘플 데이터 (여기서 실제 데이터셋으로 교체 가능)
-korean_originDF = pd.read_excel('./korean_talk_datasets.xlsx')
+korean_originDF = pd.read_excel('./korean_talk_datasets_emotion6.xlsx')
 texts = korean_originDF["Sentence"]
 labels = korean_originDF["Emotion"]
+# print(labels)
 
 # 데이터셋 생성
 dataset = EmotionDataset(texts, labels, tokenizer)
@@ -61,7 +61,7 @@ eval_dataset = EmotionDataset(texts, labels, tokenizer)  # 샘플에서는 같�
 # 모델 학습 설정
 training_args = TrainingArguments(
     output_dir="./results",
-    num_train_epochs=10,
+    num_train_epochs=20,
     dataloader_pin_memory=False,
     per_device_train_batch_size=256,
     evaluation_strategy="epoch",
@@ -85,13 +85,13 @@ print("Starting Training...")
 print("Training Completed!")
 
 # 모델 저장
-# model.save_pretrained("./fine_tuned_kobert.pth")
-# tokenizer.save_pretrained("./fine_tuned_kobert.pth")
+# model.save_pretrained("./fine_tuned_kobert")
+# tokenizer.save_pretrained("./fine_tuned_kobert")
 
 # 새로운 문장에 대한 감정 분석
 # new_sentences = ["오늘 날씨가 너무 좋아서 기분이 최고다!", "속상하고 눈물이 날 것 같아.", "나 너무 슬퍼"]
-model.load_state_dict("./results/checkpoint-1510/rng_state.pth")
-new_sentences = ["오늘 바람이 많이 많이 불어서 너무 추웠다. 여자친구와 헤어져서 그런지 더 옆구리가 쓸쓸했다."]
+# model.from_pretrained("./fine_tuned_kobert").to(DEVICE)
+new_sentences = ["오늘 난 아주 힘들었다", "오늘 난 아주 기뻤다."]
 inputs = tokenizer(new_sentences, return_tensors="pt", padding=True, truncation=True, max_length=128).to(DEVICE)
 
 # 모델 추론
