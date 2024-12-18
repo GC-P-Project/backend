@@ -7,14 +7,19 @@
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["emotion-analysis", "LLM", "wearable", "MongoDB"],
+  "keywords": [
+    "emotion-analysis",
+    "LLM",
+    "wearable",
+    "MongoDB"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "mongoose": "^8.8.3"
   }
 }
-

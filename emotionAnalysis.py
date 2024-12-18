@@ -43,7 +43,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         input_text = sys.argv[1]
         try:
-            # 분석 결과 반환
+            # 분석 결과 반환nod
             result = analysis(input_text)
             # 결과를 JSON 형식으로 출력
             print(json.dumps(result, ensure_ascii=False))

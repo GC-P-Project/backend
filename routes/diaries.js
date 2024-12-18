@@ -12,13 +12,6 @@ router.get('/user/:userId', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-router.get('/', async (req, res) => {
-  try{
-    console.log("Call");
-  } catch(err){
-    console.error("ERROR");
-  }
-});
 
 // Create a new diary entry with validation
 router.post('/', async (req, res) => {
