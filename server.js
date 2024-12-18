@@ -50,7 +50,7 @@ try {
 
 // Add the emotionResult routes 
 try {
-  app.use('/api/emotions', require('./routes/emotionResult')); // 새 라우트 추가
+  app.use('/api/emotion', require('./routes/emotionResult')); // 새 라우트 추가
 } catch (err) {
   console.error('Error loading emotionResult routes:', err.message);
 }
