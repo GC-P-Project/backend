@@ -55,6 +55,13 @@ try {
   console.error('Error loading emotionResult routes:', err.message);
 }
 
+// Add the analysis routes
+try {
+  app.use('/api/analysis', require('./routes/analysis'));
+} catch (err) {
+  console.error('Error loading analysis routes:', err.message);
+}
+
 // Global error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled Error:', err.message);

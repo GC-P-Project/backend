@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
-// 감정 분석 결과 스키마 (소수점 4자리 및 퍼센트 변환 적용)
+// 감정 분석 결과 스키마 (소수점 4자리, 퍼센트 값 그대로 저장)
 const emotionResultSchema = new mongoose.Schema({
-  happiness: { type: Number, required: true, set: val => parseFloat((val * 100).toFixed(4)) },  // 행복 확률
-  sadness: { type: Number, required: true, set: val => parseFloat((val * 100).toFixed(4)) },    // 슬픔 확률
-  anger: { type: Number, required: true, set: val => parseFloat((val * 100).toFixed(4)) },      // 분노 확률
-  surprise: { type: Number, required: true, set: val => parseFloat((val * 100).toFixed(4)) },   // 놀람 확률
-  neutrality: { type: Number, required: true, set: val => parseFloat((val * 100).toFixed(4)) }, // 중립 확률
-  fear: { type: Number, required: true, set: val => parseFloat((val * 100).toFixed(4)) },       // 공포 확률
-  disgust: { type: Number, required: true, set: val => parseFloat((val * 100).toFixed(4)) }     // 혐오 확률
+  happiness: { type: Number, required: true },   // 행복 확률 
+  sadness: { type: Number, required: true },     // 슬픔 확률
+  anger: { type: Number, required: true },       // 분노 확률
+  surprise: { type: Number, required: true },    // 놀람 확률
+  neutrality: { type: Number, required: true },  // 중립 확률
+  fear: { type: Number, required: true },        // 공포 확률
+  disgust: { type: Number, required: true }      // 혐오 확률
 });
 
 // 일기장 스키마 (유저 정보, 텍스트, 감정 결과 포함)
