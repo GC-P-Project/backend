@@ -1,131 +1,52 @@
-// // Load environment variables from .env file
-// require('dotenv').config();
-
-// // Import required packages
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const bodyParser = require('body-parser');
-// const path = require('path'); // For handling file paths
-
-// const app = express();
-// const PORT = process.env.PORT || 5000;
-
-// // Middleware to parse JSON
-// app.use(bodyParser.json());
-// // MongoDB Connection
-
-// mongoose
-//   .connect(process.env.MONGO_URI)
-//   .then(() => console.log('MongoDB Connected'))
-//   .catch((err) => {
-//     console.error('MongoDB Connection Error:', err.message);
-//     process.exit(1); // Exit if MongoDB connection fails
-//   });
-
-// // Define the main route
-// app.get('/', (req, res) => {
-//   res.send('Welcome to the Emotion Analysis API!');
-// });
-
-// // Import and use the main routes (ensure routes/index.js exists)
-// try {
-//   app.use('/api', require(path.join(__dirname, 'routes', 'index')));
-// } catch (err) {
-//   console.error('Error loading routes:', err.message);
-// }
-
-// // Add the user routes
-// try {
-//   app.use('/api/users', require('./routes/users'));
-// } catch (err) {
-//   console.error('Error loading user routes:', err.message);
-// }
-
-// // Add the diary routes
-// try {
-//   app.use('/api/diaries', require('./routes/diaries')); // Updated path to match `diaries.js`
-// } catch (err) {
-//   console.error('Error loading diary routes:', err.message);
-// }
-
-// // Add the analysis routes
-// try{
-//   app.use('/api/analysis', require('./routes/analysis'));
-// } catch(err){
-//   console.error('Error loading analysis routes:', err.message);
-// }
-
-// // Global error handling middleware
-// app.use((err, req, res, next) => {
-//   console.error('Unhandled Error:', err.message);
-//   res.status(500).json({ error: 'Internal Server Error' });
-// });
-
-// // Start the server
-// app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-// Load environment variables from .env file
-require('dotenv').config();
-
-// Import required packages
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const path = require('path'); // For handling file paths
+const userRoutes = require('./routes/userRoutes');
+const diaryRoutes = require('./routes/diaryRoutes');
+const interventionRoutes = require('./routes/interventionRoutes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+require('dotenv').config(); // env 파일 불러오기
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON
-app.use(bodyParser.json());
+app.use(express.json());
 
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch((err) => {
-    console.error('MongoDB Connection Error:', err.message);
-    process.exit(1); // Exit if MongoDB connection fails
-  });
+// MongoDB 연결
+mongoose.connect('mongodb://localhost:27017/yourDatabaseName', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-// Define the main route
-app.get('/', (req, res) => {
-  res.send('Welcome to the Emotion Analysis API!');
+//  Swagger 옵션 설정
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Emotion Diary API',
+      version: '1.0.0',
+      description: 'Emotion Diary Backend API 문서'
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+      },
+    ],
+  },
+  apis: ['./routes/*.js'], // 라우터 주석을 읽어들일 위치
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+//  Swagger UI 라우터 등록
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+//  실제 API 라우터 등록
+app.use('/users', userRoutes);
+app.use('/diaries', diaryRoutes);
+app.use('/interventions', interventionRoutes);
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Swagger API 문서: http://localhost:${PORT}/api-docs\n`);
 });
-
-// Import and use the main routes (ensure routes/index.js exists)
-try {
-  app.use('/api', require(path.join(__dirname, 'routes', 'index')));
-} catch (err) {
-  console.error('Error loading routes:', err.message);
-}
-
-// Add the user routes
-try {
-  app.use('/api/users', require('./routes/users'));
-} catch (err) {
-  console.error('Error loading user routes:', err.message);
-}
-
-// Add the diary routes
-try {
-  app.use('/api/diaries', require('./routes/diaries')); // Updated path to match `diaries.js`
-} catch (err) {
-  console.error('Error loading diary routes:', err.message);
-}
-
-
-// Add the analysis routes
-try {
-  app.use('/api/analysis', require('./routes/analysis'));
-} catch (err) {
-  console.error('Error loading analysis routes:', err.message);
-}
-
-// Global error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled Error:', err.message);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
-
-// Start the server
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
