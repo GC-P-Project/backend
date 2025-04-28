@@ -10,6 +10,19 @@ const interventionLogSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
+  diaryDate:{
+    type: String,
+    required: true,
+    unique: true,
+  },
+
+  LogId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   revisionNumber: {
     type: Number,
     default: 0, // 기본값 수정 번호 0
@@ -35,3 +48,4 @@ const interventionLogSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('InterventionLog', interventionLogSchema);
+ 

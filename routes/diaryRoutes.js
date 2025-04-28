@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Diary = require('../models/diaryModel');
 
-
 /**
  * @swagger
  * tags:
@@ -26,12 +25,16 @@ const Diary = require('../models/diaryModel');
  *             required:
  *               - uid
  *               - diaryId
+ *               - diaryDate
  *               - contents
  *             properties:
  *               uid:
  *                 type: string
  *               diaryId:
  *                 type: string
+ *               diaryDate:
+ *                 type: string
+ *                 example: "4월 27일의 일기"
  *               contents:
  *                 type: array
  *                 items:
@@ -40,17 +43,16 @@ const Diary = require('../models/diaryModel');
  *       201:
  *         description: 일기 생성 성공
  */
-// 1. Create - 일기 작성
 router.post('/', async (req, res) => {
   try {
-    const diary = new Diary(req.body);
+    const { uid, diaryId, diaryDate, contents } = req.body;
+    const diary = new Diary({ uid, diaryId, diaryDate, contents });
     await diary.save();
     res.status(201).json(diary);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
@@ -68,7 +70,6 @@ router.post('/', async (req, res) => {
  *       200:
  *         description: 일기 조회 성공
  */
-// 2. Read - 일기 조회
 router.get('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
@@ -78,7 +79,6 @@ router.get('/:diaryId', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
@@ -106,7 +106,6 @@ router.get('/:diaryId', async (req, res) => {
  *       200:
  *         description: 일기 수정 성공
  */
-// 3. Update - 일기 수정 (새로운 텍스트 추가)
 router.put('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
@@ -117,7 +116,7 @@ router.put('/:diaryId', async (req, res) => {
       return res.status(400).json({ error: 'newContent is required' });
     }
 
-    diary.contents.push(newContent); // contents 배열에 추가
+    diary.contents.push(newContent);
     await diary.save();
 
     res.json({
@@ -128,7 +127,6 @@ router.put('/:diaryId', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
@@ -146,7 +144,6 @@ router.put('/:diaryId', async (req, res) => {
  *       200:
  *         description: 일기 삭제 성공
  */
-// 4. Delete - 일기 삭제
 router.delete('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOneAndDelete({ diaryId: req.params.diaryId });
