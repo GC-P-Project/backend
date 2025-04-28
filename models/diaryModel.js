@@ -1,4 +1,4 @@
-// models/Diary.js
+// models/diaryModel.js
 const mongoose = require('mongoose');
 
 const diarySchema = new mongoose.Schema({
@@ -11,6 +11,13 @@ const diarySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  
+  diaryDate:{
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now, // 생성 시간 자동 기록

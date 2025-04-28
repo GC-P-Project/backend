@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const InterventionLog = require('../models/InterventionLog');
 
-
 /**
  * @swagger
  * tags:
@@ -26,6 +25,8 @@ const InterventionLog = require('../models/InterventionLog');
  *             required:
  *               - uid
  *               - diaryId
+ *               - diaryDate
+ *               - LogId
  *               - conversation
  *               - trigger
  *               - triggeredText
@@ -34,6 +35,9 @@ const InterventionLog = require('../models/InterventionLog');
  *                 type: string
  *               diaryId:
  *                 type: string
+ *               diaryDate:
+ *                 type: string
+ *                 example: "4월 27일의 일기"
  *               revisionNumber:
  *                 type: integer
  *               conversation:
@@ -54,17 +58,25 @@ const InterventionLog = require('../models/InterventionLog');
  *       201:
  *         description: 개입 로그 생성 성공
  */
-// 1. Create - 개입 로그 작성
 router.post('/', async (req, res) => {
   try {
-    const log = new InterventionLog(req.body);
-    await log.save();
-    res.status(201).json(log);
+    const { uid, diaryId, diaryDate, LogId, revisionNumber, conversation, trigger, triggeredText } = req.body;
+    const intervention = new InterventionLog({
+      uid,
+      diaryId,
+      diaryDate,
+      LogId,
+      revisionNumber,
+      conversation,
+      trigger,
+      triggeredText
+    });
+    await intervention.save();
+    res.status(201).json(intervention);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
@@ -76,7 +88,6 @@ router.post('/', async (req, res) => {
  *       200:
  *         description: 전체 개입 로그 조회 성공
  */
-// 2. Read (전체) - 모든 개입 로그 조회
 router.get('/', async (req, res) => {
   try {
     const logs = await InterventionLog.find();
@@ -85,7 +96,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
@@ -103,7 +113,6 @@ router.get('/', async (req, res) => {
  *       200:
  *         description: 개입 로그 조회 성공
  */
-// 3. Read (개별) - 특정 다이어리의 개입 로그 조회
 router.get('/:diaryId', async (req, res) => {
   try {
     const log = await InterventionLog.findOne({ diaryId: req.params.diaryId });
@@ -113,7 +122,6 @@ router.get('/:diaryId', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
@@ -137,17 +145,14 @@ router.get('/:diaryId', async (req, res) => {
  *       200:
  *         description: 개입 로그 수정 성공
  */
-// 4. Update - 특정 다이어리의 개입 로그 수정
 router.put('/:diaryId', async (req, res) => {
   try {
     const updateData = req.body;
-
     const log = await InterventionLog.findOneAndUpdate(
       { diaryId: req.params.diaryId },
       updateData,
       { new: true }
     );
-
     if (!log) return res.status(404).json({ error: 'Intervention log not found' });
 
     res.json(log);
@@ -155,7 +160,6 @@ router.put('/:diaryId', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
@@ -173,7 +177,6 @@ router.put('/:diaryId', async (req, res) => {
  *       200:
  *         description: 개입 로그 삭제 성공
  */
-// 5. Delete - 특정 다이어리의 개입 로그 삭제
 router.delete('/:diaryId', async (req, res) => {
   try {
     const log = await InterventionLog.findOneAndDelete({ diaryId: req.params.diaryId });
