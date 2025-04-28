@@ -56,7 +56,74 @@ router.post('/', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/login:
+ *   post:
+ *     summary: 로그인
+ *     tags: [Users]
+ *     requestBody:
+ *       description: 로그인 할 유저 정보
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - password
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: 로그인용 아이디
+ *               password:
+ *                 type: string
+ *                 description: 로그인 비밀번호
+ *     responses:
+ *       201:
+ *         description: 유저 로그인 성공
+ *       400:
+ *         description: 요청 오류
+ */
+router.post('/login', async (req, res) => {
+  const { id, password } = req.body;
 
+  // **진단 코드: 비밀번호 값 확인**
+  console.log('Login request received. Email:', id);
+  console.log('Password received:', password);
+  
+  try {
+    // 1. 이메일로 사용자 확인
+    const user = await User.findOne({email: id});
+    console.log(user);
+    const flag = await bcrypt.compare(password, user.password);
+
+    if (!user) {
+      console.log('User not found with id:', id);
+      return res.status(401).json({ error: '이메일 또는 비밀번호가 잘못되었습니다.' });
+    }
+
+    console.log('User found:', user);
+
+    // 2. 비밀번호 검증 (평문 비교)
+    if (!flag) {
+      console.log('Passwords do not match.');
+      return res.status(401).json({ error: '비밀번호가 잘못되었습니다.' });
+    }
+
+    // 3. 로그인 성공 시 사용자 정보 반환 (비밀번호 제외)
+    res.status(200).json({
+      message: '로그인 성공',
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error('로그인 오류:', err.message);
+    res.status(500).json({ error: '서버 내부 오류' }); // 서버 오류 처리
+  }
+});
 
 /**
  * @swagger

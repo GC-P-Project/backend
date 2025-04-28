@@ -1,52 +1,42 @@
+//  utils/gptClient.js 
+
 const axios = require('axios');
 const readline = require('readline');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// DB 연결
+// ================== DB 연결 ==================
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('MongoDB Connected'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// 대화 저장할 스키마
+// ================== 모델 정의 ==================
 const interventionLogSchema = new mongoose.Schema({
   uid: String,
   diaryId: String,
   revisionNumber: Number,
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  createdAt: { type: Date, default: Date.now },
   conversation: [
-    {
-      speaker: String,
-      message: String,
-    }
+    { speaker: String, message: String }
   ],
   trigger: String,
   triggeredText: String
 });
-
 const InterventionLog = mongoose.model('InterventionLog', interventionLogSchema);
 
-//  Diary 스키마
 const diarySchema = new mongoose.Schema({
   uid: String,
   diaryId: String,
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  createdAt: { type: Date, default: Date.now },
   contents: [String]
 });
 const Diary = mongoose.model('Diary', diarySchema);
 
-//  User 스키마 (민감도 필드 포함)
 const userSchema = new mongoose.Schema({
   uid: String,
-  interventionSensitivity: { type: Number, default: 0.5 } // 0~1 사이 민감도
+  interventionSensitivity: { type: Number, default: 0.5 }
 });
 const User = mongoose.model('User', userSchema);
 
@@ -104,20 +94,19 @@ const emotionIntensityPrompt = (text) => `
 답변 예시: 0.87
 `;
 
-//  readline 세팅
+// ================== 기본 세팅 ==================
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-//  diary 저장용 객체 초기화
 const diary = new Diary({
   uid: "test_user",
   diaryId: "diary_123",
   contents: []
 });
 
-//  트리거 감지 함수
+// ================== 기능 함수들 ==================
 function detectTrigger(text) {
   const triggers = ['불안', '우울', '무기력', '짜증'];
   for (let trigger of triggers) {
@@ -128,7 +117,6 @@ function detectTrigger(text) {
   return null;
 }
 
-//  감정 강도 뽑기 함수
 async function getEmotionIntensity(text) {
   const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
@@ -142,7 +130,6 @@ async function getEmotionIntensity(text) {
 
   const rawScore = response.data.choices[0].message.content.trim();
   const score = parseFloat(rawScore);
-
   if (isNaN(score)) {
     console.error('감정 강도 추출 실패:', rawScore);
     return 0.0;
@@ -150,14 +137,26 @@ async function getEmotionIntensity(text) {
   return score;
 }
 
-//  개입 여부 판단 함수
+async function sendToGPT(messages) {
+  const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+    model: 'gpt-3.5-turbo',
+    messages: messages
+  }, {
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data.choices[0].message.content;
+}
+
 async function shouldIntervene(userText, userSensitivity) {
   const emotionIntensity = await getEmotionIntensity(userText);
   console.log(` 감정 강도: ${emotionIntensity} / 사용자 민감도: ${userSensitivity}`);
   return emotionIntensity >= userSensitivity;
 }
 
-//  개입 세션 시작 함수
+//  Intervention 세션 시작 함수 (여기 있었어야 함)
 async function startInterventionSession(triggeredText, trigger) {
   console.log(` 트리거 감지: "${trigger}" → 개입 대화 시작`);
 
@@ -181,12 +180,12 @@ async function startInterventionSession(triggeredText, trigger) {
   console.log(`GPT: ${gptReply}`);
   intervention.conversation.push({ speaker: "gpt", message: gptReply });
 
-  // 대화 루프
+  // 대화 루프 시작
   async function conversationLoop() {
     rl.question('You: ', async (userInput) => {
       if (userInput.toLowerCase() === 'exit') {
         await intervention.save();
-        console.log(' 개입 대화가 저장되었습니다.');
+        console.log(' InterventionLog 저장 완료');
         rl.close();
         return;
       } else {
@@ -205,34 +204,17 @@ async function startInterventionSession(triggeredText, trigger) {
   await conversationLoop();
 }
 
-//  GPT로 메시지 보내는 함수
-async function sendToGPT(messages) {
-  const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-    model: 'gpt-3.5-turbo',
-    messages: messages
-  }, {
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  return response.data.choices[0].message.content;
-}
-
-//  일기 작성 + 트리거 감지 + 개입 흐름
+//  일기 작성 시작 함수
 async function startDiaryWriting() {
   console.log(' 일기를 작성하세요 (줄바꿈 할 때마다 검사합니다)');
 
-  // DB에서 사용자 민감도 불러오기
   const user = await User.findOne({ uid: "test_user" });
-  const userSensitivity = user ? user.interventionSensitivity : 0.5; // 기본 0.5
+  const userSensitivity = user ? user.interventionSensitivity : 0.5;
 
   rl.on('line', async (line) => {
     const trimmedLine = line.trim();
     if (trimmedLine.length === 0) return;
 
-    // 일기 저장
     diary.contents.push(trimmedLine);
 
     const trigger = detectTrigger(trimmedLine);
@@ -240,6 +222,7 @@ async function startDiaryWriting() {
     if (trigger) {
       const intervene = await shouldIntervene(trimmedLine, userSensitivity);
       if (intervene) {
+        console.log(' 감정 강도 높음, 개입 시작');
         await startInterventionSession(trimmedLine, trigger);
       } else {
         console.log(' 감정 강도 낮음 - 개입하지 않고 넘어갑니다.');
@@ -251,9 +234,11 @@ async function startDiaryWriting() {
 
   rl.on('close', async () => {
     await diary.save();
-    console.log(' 일기 내용도 MongoDB에 저장되었습니다.');
+    console.log(' 일기 내용이 저장되었습니다.');
     process.exit(0);
   });
 }
 
-startDiaryWriting();
+module.exports = {
+  startDiaryWriting,
+};

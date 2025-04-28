@@ -54,20 +54,20 @@ router.post('/', async (req, res) => {
 
 // 사용자 로그인
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { id, password } = req.body;
 
   // **진단 코드: 비밀번호 값 확인**
-  console.log('Login request received. Email:', email);
+  console.log('Login request received. Email:', id);
   console.log('Password received:', password);
   
   try {
     // 1. 이메일로 사용자 확인
-    const user = await User.findOne({ email });
-
+    const user = await User.findOne({ email : id });
+    console.log('User result: ', user);
     const flag = await bcrypt.compare(password, user.password);
 
     if (!user) {
-      console.log('User not found with email:', email);
+      console.log('User not found with id:', id);
       return res.status(401).json({ error: '이메일 또는 비밀번호가 잘못되었습니다.' });
     }
 

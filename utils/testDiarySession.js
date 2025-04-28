@@ -1,7 +1,13 @@
-const { startDiarySession } = require('../utils/gptClient'); //  함수 불러오기
-async function example() {
-  const gptReply = await startDiarySession('오늘 너무 무기력하고 힘들었어요...'); // GPT에게 요청
-  console.log('GPT 답변:', gptReply); //  응답 출력
-}
+const { startDiaryWriting } = require('./gptClient');
+require('dotenv').config();
+const mongoose = require('mongoose');
 
-example(); //  실행
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('MongoDB Connected');
+  startDiaryWriting();
+}).catch((err) => {
+  console.error('MongoDB Connection Error:', err);
+});
