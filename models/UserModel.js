@@ -26,8 +26,8 @@ const userSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    enum: ['male', 'female', 'other', 'prefer_not_to_say'], // 선택사항
     default: null,
+    enum: ['male', 'female', 'other', 'prefer_not_to_say', null], // 선택사항
   },
   location: {
     type: String,

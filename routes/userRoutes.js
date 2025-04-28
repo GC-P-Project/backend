@@ -46,15 +46,35 @@ const User = require('../models/UserModel'); // User 모델 불러오기
 // 1. Create - 회원가입
 router.post('/', async (req, res) => {
   try {
-    const { password, ...rest } = req.body;
+    const { id, password, ...rest } = req.body;
+
+    // 1. Id 중복 체크
+    const existingUser = await User.findOne({ id });
+    if (existingUser) {
+      return res.status(409).json({ error: '이미 존재하는 아이디입니다.' });
+    }
+
+    // 2. 비밀번호 유효성 검증 (6자 이상)
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: '비밀번호는 최소 6자 이상이어야 합니다.' });
+    }
     const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 해싱
-    const user = new User({ ...rest, password: hashedPassword });
+    
+    // 3. User 데이터 생성
+    const user = new User({
+      id: id, 
+      password: hashedPassword, 
+      ...rest });
+    user.uid = user._id.toString();
     await user.save();
+
     res.status(201).json(user);
   } catch (err) {
+    console.log(err.message);
     res.status(400).json({ error: err.message });
   }
 });
+
 
 /**
  * @swagger
@@ -93,15 +113,14 @@ router.post('/login', async (req, res) => {
   console.log('Password received:', password);
   
   try {
-    // 1. 이메일로 사용자 확인
-    const user = await User.findOne({email: id});
-    console.log(user);
-    const flag = await bcrypt.compare(password, user.password);
-
-    if (!user) {
-      console.log('User not found with id:', id);
+    // 1. 아이디로 유저 확인
+    const user = await User.findOne({id});
+    if (!user) {//console.log('User not found with id:', id);
       return res.status(401).json({ error: '이메일 또는 비밀번호가 잘못되었습니다.' });
     }
+
+    const flag = await bcrypt.compare(password, user.password);
+
 
     console.log('User found:', user);
 
@@ -115,8 +134,7 @@ router.post('/login', async (req, res) => {
     res.status(200).json({
       message: '로그인 성공',
       user: {
-        id: user._id,
-        email: user.email,
+        id: user._id
       },
     });
   } catch (err) {
