@@ -12,6 +12,22 @@ mongoose.connect(process.env.MONGO_URI, {
   .catch(err => console.error('MongoDB Connection Error:', err));
 
 // ================ 모델 정의 ================
+const userSchema = new mongoose.Schema({
+  uid: String,
+  interventionSensitivity: { type: Number, default: 0.5 },
+  traits: {
+    honestyHumility: { type: Number, default: 0.5 },
+    emotionalStability: { type: Number, default: 0.5 },
+    extraversion: { type: Number, default: 0.5 },
+    conscientiousness: { type: Number, default: 0.5 },
+    openness: { type: Number, default: 0.5 },
+    riskPropensity: { type: Number, default: 0.5 },
+    needForCognition: { type: Number, default: 0.5 },
+    futureTimePerspective: { type: Number, default: 0.5 }
+  }
+});
+const User = mongoose.model('User', userSchema);
+
 const interventionLogSchema = new mongoose.Schema({
   uid: String,
   diaryId: String,
@@ -36,43 +52,45 @@ const diarySchema = new mongoose.Schema({
 });
 const Diary = mongoose.model('Diary', diarySchema);
 
-const userSchema = new mongoose.Schema({
-  uid: String,
-  interventionSensitivity: { type: Number, default: 0.5 }
-});
-const User = mongoose.model('User', userSchema);
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const diary = new Diary({ uid: "test_user", diaryId: "diary_123", diaryDate: "4월 29일의 일기", contents: [] });
 
-// ================ 세팅 ================
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-// "오늘 일기"를 저장할 객체
-const diary = new Diary({
-  uid: "test_user",
-  diaryId: "diary_123",
-  diaryDate: "4월 28일의 일기", 
-  contents: []
-});
-
-// ================ 기능 함수 ================
 function detectTrigger(text) {
   const triggers = ['불안', '우울', '무기력', '짜증'];
   return triggers.find(trigger => text.includes(trigger)) || null;
 }
 
-async function getEmotionIntensity(text) {
+const generatePersonalizedPrompt = (traits, text) => `
+너는 감정 분석 전문가야.
+
+아래 사용자의 성향(traits)을 참고해서, 입력된 문장이 얼마나 부정적인 감정을 표현하고 있는지를 평가해줘.
+성향은 0~1 사이 수치야.
+
+[사용자 성향]
+정직/겸손: ${traits.honestyHumility}
+정서적 안정성: ${traits.emotionalStability}
+외향성: ${traits.extraversion}
+성실성: ${traits.conscientiousness}
+개방성: ${traits.openness}
+위험 감수 성향: ${traits.riskPropensity}
+인지욕구: ${traits.needForCognition}
+미래지향성: ${traits.futureTimePerspective}
+
+문장: "${text}"
+
+→ 이 문장의 부정 감정 강도를 0~1 숫자로만 답해. 예시: 0.72
+`;
+
+async function getEmotionIntensity(text, traits) {
   const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
-    messages: [{ role: "system", content: emotionIntensityPrompt(text) }]
+    messages: [{ role: "system", content: generatePersonalizedPrompt(traits, text) }]
   }, {
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json'
     }
   });
-
   const rawScore = response.data.choices[0].message.content.trim();
   const score = parseFloat(rawScore);
   return isNaN(score) ? 0.0 : score;
@@ -81,7 +99,7 @@ async function getEmotionIntensity(text) {
 async function sendToGPT(messages) {
   const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
-    messages: messages
+    messages
   }, {
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -91,14 +109,49 @@ async function sendToGPT(messages) {
   return response.data.choices[0].message.content;
 }
 
-async function shouldIntervene(userText, userSensitivity) {
-  const emotionIntensity = await getEmotionIntensity(userText);
-  console.log(` 감정 강도: ${emotionIntensity} / 사용자 민감도: ${userSensitivity}`);
-  return emotionIntensity >= userSensitivity;
+async function updateUserTraits(uid, diaryContents, fullConversation) {
+  const prompt = `
+너는 성격 분석 전문가야. 아래는 사용자의 일기 내용과 GPT와의 대화 내용이야.
+이걸 바탕으로 아래 8가지 성향(traits)을 0~1 사이 숫자로 다시 예측해줘. JSON 형태로만 반환해.
+
+traits: honestyHumility, emotionalStability, extraversion, conscientiousness, openness, riskPropensity, needForCognition, futureTimePerspective
+
+일기 내용: ${diaryContents.join("\n")}
+대화 내용: ${fullConversation.map(c => `(${c.speaker}) ${c.message}`).join("\n")}
+
+답변 형식 예시:
+{
+  "honestyHumility": 0.52,
+  "emotionalStability": 0.31,
+  "extraversion": 0.45,
+  "conscientiousness": 0.62,
+  "openness": 0.48,
+  "riskPropensity": 0.39,
+  "needForCognition": 0.54,
+  "futureTimePerspective": 0.60
+}`;
+
+  const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+    model: 'gpt-3.5-turbo',
+    messages: [{ role: "system", content: prompt }]
+  }, {
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  const content = response.data.choices[0].message.content;
+  try {
+    const traits = JSON.parse(content);
+    await User.findOneAndUpdate({ uid }, { traits });
+    console.log(" 사용자 trait 정보 업데이트 완료");
+  } catch (e) {
+    console.error(" trait JSON 파싱 실패:", content);
+  }
 }
 
-// GPT와 대화 (InterventionLog에만 저장)
-async function startInterventionSession(triggeredText, trigger) {
+async function startInterventionSession(triggeredText, trigger, user, diaryObj) {
   console.log(` 트리거 감지: "${trigger}" → 개입 대화 시작`);
 
   let messages = [
@@ -107,72 +160,62 @@ async function startInterventionSession(triggeredText, trigger) {
   ];
 
   const intervention = new InterventionLog({
-    uid: "test_user",
-    diaryId: "diary_123",
-    diaryDate: "4월 29일의 일기",  // 예시
+    uid: user.uid,
+    diaryId: diaryObj.diaryId,
+    diaryDate: diaryObj.diaryDate,
     revisionNumber: 1,
     conversation: [
       { speaker: "user", message: triggeredText }
     ],
-    trigger: trigger,
-    triggeredText: triggeredText
+    trigger,
+    triggeredText
   });
-
-  async function conversationLoop() {
-    rl.question('You: ', async (userInput) => {
-      if (userInput.toLowerCase() === 'exit') {
-        try {
-          await intervention.save();
-          console.log(' InterventionLog 저장 완료');
-          console.log('  개입 종료. 다시 일기를 작성하세요.');
-          return;
-        } catch (err) {
-          console.error(' 저장 실패:', err);
-        }
-      } else {
-        messages.push({ role: "user", content: userInput });
-        intervention.conversation.push({ speaker: "user", message: userInput });
-  
-        const gptReply = await sendToGPT(messages);
-        console.log(`GPT: ${gptReply}`);
-        intervention.conversation.push({ speaker: "gpt", message: gptReply });
-  
-        await conversationLoop(); // 계속 대화
-      }
-    });
-  }
-  
 
   const gptReply = await sendToGPT(messages);
   console.log(`GPT: ${gptReply}`);
   intervention.conversation.push({ speaker: "gpt", message: gptReply });
 
+  async function conversationLoop() {
+    rl.question('You: ', async (userInput) => {
+      if (userInput.toLowerCase() === 'exit') {
+        await intervention.save();
+        console.log(' InterventionLog 저장 완료');
+        await updateUserTraits(user.uid, diaryObj.contents, intervention.conversation);
+        console.log(' 개입 종료. 다시 일기를 작성하세요.');
+        return;
+      } else {
+        messages.push({ role: "user", content: userInput });
+        intervention.conversation.push({ speaker: "user", message: userInput });
+        const gptReply = await sendToGPT(messages);
+        console.log(`GPT: ${gptReply}`);
+        intervention.conversation.push({ speaker: "gpt", message: gptReply });
+        await conversationLoop();
+      }
+    });
+  }
+
   await conversationLoop();
 }
 
-
-// ================== 일기 작성 흐름 ==================
 async function startDiaryWriting() {
   console.log('  일기를 작성하세요 (줄바꿈 할 때마다 검사합니다)');
 
-  const user = await User.findOne({ uid: "test_user" });
-  const userSensitivity = user ? user.interventionSensitivity : 0.5;
+  const user = await User.findOne({ id: "test1" });
+  const userTraits = user.traits;
 
   rl.on('line', async (line) => {
     const trimmedLine = line.trim();
     if (trimmedLine.length === 0) return;
 
-    //  사용자가 입력한 일기 줄 저장
     diary.contents.push(trimmedLine);
-
     const trigger = detectTrigger(trimmedLine);
     if (trigger) {
-      const intervene = await shouldIntervene(trimmedLine, userSensitivity);
-      if (intervene) {
+      const intervene = await getEmotionIntensity(trimmedLine, userTraits);
+      if (intervene >= user.interventionSensitivity) {
         console.log('  감정 강도 높음 → 개입 진행');
-        await startInterventionSession(trimmedLine, trigger);
+        await startInterventionSession(trimmedLine, trigger, user, diary);
       } else {
-        console.log('  감정 강도 낮음 - 그냥 일기 저장');
+        console.log(' 감정 강도 낮음 - 그냥 일기 저장');
       }
     } else {
       console.log(' 계속 작성 중...');
@@ -181,65 +224,17 @@ async function startDiaryWriting() {
 
   rl.on('close', async () => {
     await diary.save();
-    console.log('  일기 전체 저장 완료');
+    console.log(' 일기 전체 저장 완료');
     process.exit(0);
   });
 }
 
-//  초기 System Prompt (프롬프트 세팅)
 const initialSystemPrompt = `
-너는 감정 기반 일기 앱의 정서적 동반자야.
-사용자가 일기 중에 불안, 우울, 무기력, 짜증 등의 감정 트리거를 보이면, 너는 감정 케어를 위해 개입을 시작해야 해.
-
-[너의 역할]
-- 따뜻하고 친근한 존댓말을 사용해.
-- 사용자의 감정을 절대 평가하거나 판단하지 말고, 있는 그대로 공감해.
-- 사용자가 감정을 충분히 표현할 수 있도록 부드러운 질문을 던져.
-- 사용자가 스스로 감정을 인식할 수 있도록 도와주는 것이 목표야.
-- 대화를 억지로 마무리짓지 말고, 사용자가 그만하고 싶어할 때 자연스럽게 끝내.
-
-[대화 규칙]
-- 무조건 공감 멘트를 포함해 ("힘드셨겠어요", "그럴 수 있어요" 등)
-- 짧은 질문이나 리액션으로 대화를 이어가
-- 조언이나 해결책 제시는 최대한 뒤로 미루기
-- 유저가 대화 종료 의사를 보이면 "언제든 다시 이야기하고 싶으면 불러주세요."로 끝내
-
-[감지된 감정 트리거]
-- 불안
-- 우울
-- 무기력
-- 짜증
-
-[대화 내용 기록]
-- 사용자의 발화 내용과 너의 답변을 각각 별도로 저장해야 해.
-- 대화의 각 턴(turn)을 "사용자 메시지"와 "GPT 메시지"로 구분하여 저장해야 한다.
-- 저장 형식은 다음을 따른다:
-
-1. 사용자가 보낸 메시지 → { "speaker": "user", "message": "..." }
-2. 너(GPT)가 보낸 메시지 → { "speaker": "gpt", "message": "..." }
-
-이렇게 사용자와의 대화를 안전하게 기록하고 관리하는 것이 가장 중요한 목표 중 하나다.
-
-너는 감정적으로 불안정한 상태에 있는 사용자를 안전하게 케어하는 것이 가장 중요한 목표야.
-[추가 요청]
-- 사용자가 보낸 일기 문장을 보고 대화를 시작해 주세요.
-- 첫 번째 답변은 공감 + 부드러운 질문 형태로 작성하세요.
-- 예시 답변: "많이 힘드셨겠어요. 어떤 점이 가장 힘들게 느껴졌나요?"
+너는 감정 기반 일기 앱의 정서적 동반자야. 사용자의 감정에 공감하고 케어하는 역할을 맡았어.
+- 감정 트리거: 불안, 우울, 무기력, 짜증
+- 사용자의 말에 공감하고 부드러운 질문으로 대화를 이끌어가.
+- 조언은 최대한 뒤로 미루고, 종료 시점은 사용자에게 맡겨.
+예시: "많이 힘드셨겠어요. 어떤 점이 가장 힘들게 느껴졌나요?"
 `;
 
-//  감정 강도 평가용 Prompt 생성 함수
-const emotionIntensityPrompt = (text) => `
-너는 감정 분석 전문가야.
-
-아래 문장의 부정적 감정 강도를 0~1 사이 숫자로 답해.
-- 0은 거의 부정 감정 없음
-- 1은 매우 강한 부정 감정
-- 오직 숫자만 답해.
-
-문장: "${text}"
-답변 예시: 0.87
-`;
 module.exports = { startDiaryWriting };
-
-
-
