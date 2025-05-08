@@ -9,8 +9,10 @@ require('dotenv').config(); // env 파일 불러오기
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const cors = require('cors');
 
 app.use(express.json());
+app.use(cors());
 
 // MongoDB 연결
 mongoose.connect(process.env.MONGO_URI, {
