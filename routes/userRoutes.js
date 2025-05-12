@@ -121,9 +121,6 @@ router.post('/login', async (req, res) => {
 
     const flag = await bcrypt.compare(password, user.password);
 
-
-    console.log('User found:', user);
-
     // 2. 비밀번호 검증 (평문 비교)
     if (!flag) {
       console.log('Passwords do not match.');
@@ -235,7 +232,6 @@ router.put('/:uid', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-
 
 /**
  * @swagger
