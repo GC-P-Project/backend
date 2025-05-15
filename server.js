@@ -29,11 +29,6 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'Emotion Diary Backend API 문서'
     },
-    servers: [
-      {
-        url: 'http://localhost:5000',
-      },
-    ],
   },
   apis: ['./routes/*.js'], // 라우터 주석을 읽어들일 위치
 };
@@ -49,5 +44,5 @@ app.use('/interventions', interventionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Swagger API 문서: http://localhost:${PORT}/api-docs\n`);
+  console.log(`Swagger API 문서: https://mood-mate-7vfw.onrender.com/api-docs\n`);
 });
