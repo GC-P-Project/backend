@@ -46,7 +46,6 @@ const {detectTrigger} = require('../utils/gptClient');
  *         description: 일기 생성 성공
  */
 //  Flutter에서 일기 저장 요청 시 → 저장 + trigger check + 개입 시작까지 처리
-// 
 router.post('/', async (req, res) => {
   const { uid, diaryId, diaryDate, content } = req.body; // content는 하나의 문자열 (Flutter에서 전달)
 
@@ -105,10 +104,10 @@ router.post('/', async (req, res) => {
     }
 
     if (interventionStarted) {
-      console.log(user.id + ': Diary saved & intervention started');
+      console.log(user.id+'${user.id} : Diary saved & intervention started');
       return res.status(200).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
     } else {
-      console.log(user.id + ': Diary save without intervention');
+      console.log(user.id+'${user.id} Diary save without intervention');
       return res.status(200).json({ message: 'Diary saved without intervention' });
     }
 
@@ -117,6 +116,9 @@ router.post('/', async (req, res) => {
   }
 });
 
+// 유저가 원하는 날짜를 입력 받아서 가장 최신의 일기 데이터를 반환
+// request(uid, diaryDate)| uid:유저 uid, diaryDate: 원하는 날짜(형식:yyyy-mm-dd)
+// return| {content: "일기 내용"}
 router.get('/latest-content', async (req, res) => {
   try {
     const { uid, diaryDate } = req.query; // GET 방식의 쿼리 파라미터로 가정
@@ -147,9 +149,9 @@ router.get('/latest-content', async (req, res) => {
 });
 
 // 유저의 전체 다이어리 데이터 반환하는 api
-router.get('/:AlldiaryId', async(req, res) =>{
+router.get('/AlldiaryId', async(req, res) =>{
   try{
-    const user = await User.findOne({uid: req.params.uid});
+    const user = await User.findOne({uid: req.query.uid});
     if (!user) return res.status(404).json({ error: 'user uid not found' });
     
     const diaries = await Diary.find({ uid: user });
@@ -172,13 +174,12 @@ router.get('/:AlldiaryId', async(req, res) =>{
     for (const [date, diary] of Object.entries(diaryMap)) {
       result[date] = diary.contents;
     }
-
+    console.log(result);
     return res.json(result);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Internal server error' });
   }
-   
 });
 /**
  * @swagger
@@ -196,7 +197,7 @@ router.get('/:AlldiaryId', async(req, res) =>{
  *       200:
  *         description: 일기 조회 성공
  */
-// 특정 다이어리 
+// 특정 다이어리 데이터 반환하기
 router.get('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
@@ -233,6 +234,7 @@ router.get('/:diaryId', async (req, res) => {
  *       200:
  *         description: 일기 수정 성공
  */
+// 일기 수정하는 내용
 router.put('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
