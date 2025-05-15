@@ -60,4 +60,4 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true }); // createdAt, updatedAt 자동 생성
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);

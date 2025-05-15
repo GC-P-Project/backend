@@ -28,4 +28,4 @@ const diarySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Diary', diarySchema);
+module.exports = mongoose.models.Diary || mongoose.model('Diary', diarySchema);

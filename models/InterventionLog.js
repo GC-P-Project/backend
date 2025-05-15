@@ -47,5 +47,5 @@ const interventionLogSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('InterventionLog', interventionLogSchema);
+module.exports = mongoose.models.InterventionLog || mongoose.model('InterventionLog', interventionLogSchema);
  
