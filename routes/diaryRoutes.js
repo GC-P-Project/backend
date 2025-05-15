@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Diary = require('../models/diaryModel');
 const User = require('../models/UserModel');
+const InterventionLog = require('../models/InterventionLog');
 const {detectTrigger} = require('../utils/gptClient');
 /**
  * @swagger
@@ -138,6 +139,7 @@ router.get('/latest-content', async (req, res) => {
     }
 
     // contents 반환 (배열)
+    console.log(uid + ": " +diaryDate + ", " + latestDiary.contents);
     return res.json({ contents: latestDiary.contents });
   } catch (err) {
     console.error(err);
