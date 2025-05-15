@@ -65,8 +65,6 @@ router.post('/', async (req, res) => {
       contents
     });
     await diary.save();
-    
-    console.log(user.id + "Diary save");
 
     //  트리거 + 감정 강도 검사
     let interventionStarted = false;
@@ -107,10 +105,10 @@ router.post('/', async (req, res) => {
     }
 
     if (interventionStarted) {
-      console.log(user.id + 'Diary saved & intervention started');
+      console.log(user.id + ': Diary saved & intervention started');
       return res.status(200).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
     } else {
-      console.log(user.id + 'Diary save without intervention');
+      console.log(user.id + ': Diary save without intervention');
       return res.status(200).json({ message: 'Diary saved without intervention' });
     }
 
@@ -122,7 +120,7 @@ router.post('/', async (req, res) => {
 router.get('/latest-content', async (req, res) => {
   try {
     const { uid, diaryDate } = req.query; // GET 방식의 쿼리 파라미터로 가정
-
+    console.log("lastest-content()|" + uid +", "+ diaryDate);
     if (!uid || !diaryDate) {
       return res.status(400).json({ error: 'uid와 diaryDate를 모두 입력해야 합니다.' });
     }
