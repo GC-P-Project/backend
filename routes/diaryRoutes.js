@@ -3,7 +3,7 @@ const router = express.Router();
 const Diary = require('../models/diaryModel');
 const User = require('../models/UserModel');
 const InterventionLog = require('../models/InterventionLog');
-const {detectTrigger} = require('../utils/gptClient');
+const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits} = require('../utils/gptClient');
 /**
  * @swagger
  * tags:
