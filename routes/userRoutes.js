@@ -191,6 +191,16 @@ router.get('/:uid', async (req, res) => {
   }
 });
 
+router.get('/:getUserUID', async(req,res) => {
+  try{
+    const userUID = await User.findOne({uid: req.params.id})
+    console.log(req.params.id + " User: " + userUID);
+    if (!userUID) return res.status(404).json({ error: 'User not found' });
+    res.json(userUID);
+  } catch(err){
+    res.status(500).json({error:err.message});
+  }
+});
 
 /**
  * @swagger

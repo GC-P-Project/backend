@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Diary = require('../models/diaryModel');
+const User = require('../models/UserModel');
 
 /**
  * @swagger
@@ -49,6 +50,7 @@ router.post('/', async (req, res) => {
 
   try {
     const user = await User.findOne({ uid });
+    console.log(uid+ ': '+ user);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // 일기 contents 배열로 변환 (줄바꿈 기준)
