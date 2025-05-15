@@ -114,6 +114,67 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.get('/latest-content', async (req, res) => {
+  try {
+    const { uid, diaryDate } = req.query; // GET 방식의 쿼리 파라미터로 가정
+
+    if (!uid || !diaryDate) {
+      return res.status(400).json({ error: 'uid와 diaryDate를 모두 입력해야 합니다.' });
+    }
+
+    // 해당 조건으로 최신 일기 하나만 조회 (createdAt 내림차순)
+    const latestDiary = await Diary.findOne(
+      { uid: uid, diaryDate: diaryDate },
+      { contents: 1, _id: 0 }
+    ).sort({ createdAt: -1 });
+
+    if (!latestDiary) {
+      // 해당 일기가 없는 경우
+      return res.json({ contents: ""});
+    }
+
+    // contents 반환 (배열)
+    return res.json({ contents: latestDiary.contents });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 유저의 전체 다이어리 데이터 반환하는 api
+router.get('/:AlldiaryId', async(req, res) =>{
+  try{
+    const user = await User.findOne({uid: req.params.uid});
+    if (!user) return res.status(404).json({ error: 'user uid not found' });
+    
+    const diaries = await Diary.find({ uid: user });
+
+    // 2. diaryDate별로 최신 것만 남기는 로직
+    const diaryMap = {};
+    for (const diary of diaries) {
+      const date = diary.diaryDate;
+      if (
+        !diaryMap[date] || 
+        new Date(diary.createdAt) > new Date(diaryMap[date].createdAt)
+      ) {
+        // 이 날짜에 더 최신 다이어리라면 갱신
+        diaryMap[date] = diary;
+      }
+    }
+
+    // 3. diaryDate: contents만 추출해서 리턴
+    const result = {};
+    for (const [date, diary] of Object.entries(diaryMap)) {
+      result[date] = diary.contents;
+    }
+
+    return res.json(result);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+   
+});
 /**
  * @swagger
  * /diaries/{diaryId}:
