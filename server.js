@@ -26,8 +26,8 @@ const swaggerOptions = {
     openapi: '3.0.0',
     info: {
       title: 'Emotion Diary API',
-      version: '1.0.0',
-      description: 'Emotion Diary Backend API 문서'
+      version: '1.0.1',
+      description: 'Emotion Diary Backend API 문서\n API 변경중입니다.'
     },
   },
   apis: ['./routes/*.js'], // 라우터 주석을 읽어들일 위치

@@ -36,21 +36,27 @@ const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits} = requir
  *                 type: string
  *               diaryDate:
  *                 type: string
- *                 example: "4월 27일의 일기"
+ *                 example: "2025-04-12"
  *               contents:
  *                 type: array
  *                 items:
  *                   type: string 
  *     responses:
- *       201:
- *         description: 일기 생성 성공
+ *       202:
+ *         description: 일기 생성 완료. gpt 개입 실행됨.
+ *       203:
+ *         description: 일기 생성 완료. gpt 개입은 안됨
+ *       404:
+ *         description: uid로 유저 정보를 찾을 수 없음.
+ *       500:
+ *         description: 서버 로직 오류
  */
 router.post('/', async (req, res) => {
   const { uid, diaryId, diaryDate, content } = req.body; // content는 하나의 문자열 (Flutter에서 전달)
 
   try {
     const user = await User.findOne({ uid });
-    if (!user) return res.status(404).json({ error: 'User not found: '+ user });
+    if (!user) return res.status(404).json({ error: 'User not found: '});
 
     // 일기 contents 배열로 변환 (줄바꿈 기준)
     const contents = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -104,10 +110,10 @@ router.post('/', async (req, res) => {
 
     if (interventionStarted) {
       console.log(user.id+'${user.id} : Diary saved & intervention started');
-      return res.status(200).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
+      return res.status(202).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
     } else {
       console.log(user.id+'${user.id} Diary save without intervention');
-      return res.status(200).json({ message: 'Diary saved without intervention' });
+      return res.status(203).json({ message: 'Diary saved without intervention' });
     }
 
   } catch (err) {
@@ -225,11 +231,13 @@ router.get('/AlldiaryId', async(req, res) =>{
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// 특정 다이어리 데이터 반환하기
 /**
  * @swagger
  * /diaries/{diaryId}:
  *   get:
- *     summary: diaryId로 데이터 반환
+ *     summary: (수정필요)diaryId로 데이터 반환
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -241,7 +249,6 @@ router.get('/AlldiaryId', async(req, res) =>{
  *       200:
  *         description: 일기 조회 성공
  */
-// 특정 다이어리 데이터 반환하기
 router.get('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
@@ -256,7 +263,7 @@ router.get('/:diaryId', async (req, res) => {
  * @swagger
  * /diaries/{diaryId}:
  *   put:
- *     summary: 일기 수정 (새로운 내용 추가)
+ *     summary: (수정필요)일기 수정 (새로운 내용 추가)
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -305,7 +312,7 @@ router.put('/:diaryId', async (req, res) => {
  * @swagger
  * /diaries/{diaryId}:
  *   delete:
- *     summary: 특정 일기 삭제
+ *     summary: (수정필요)특정 일기 삭제
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
