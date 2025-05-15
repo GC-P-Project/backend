@@ -135,6 +135,7 @@ router.get('/latest-content', async (req, res) => {
 
     if (!latestDiary) {
       // 해당 일기가 없는 경우
+      console.log(uid + ": " +diaryDate + ", ");
       return res.json({ contents: ""});
     }
 
