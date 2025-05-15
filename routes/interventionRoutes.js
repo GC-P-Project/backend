@@ -10,13 +10,6 @@ const {
 
 /**
  * @swagger
- * tags:
- *   name: Interventions
- *   description: Intervention log 및 GPT 개입 API
- */
-
-/**
- * @swagger
  * /interventions:
  *   post:
  *     summary: Intervention log 생성

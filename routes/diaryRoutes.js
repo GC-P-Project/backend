@@ -8,17 +8,17 @@ const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits} = requir
  * @swagger
  * tags:
  *   name: Diaries
- *   description: 일기 관련 API
+ *   description: 일기 데이터 저장, 수정, 삭제 등 관련 api
  */
 
 /**
  * @swagger
  * /diaries:
  *   post:
- *     summary: 일기 작성
+ *     summary: (수정필요)일기 저장 요청 시 → 저장 + trigger check + 개입 시작까지 처리
  *     tags: [Diaries]
  *     requestBody:
- *       description: 작성할 일기 정보
+ *       description: 일기를 저장하면 gpt가 trigger check까지 하는 코드.
  *       required: true
  *       content:
  *         application/json:
@@ -40,12 +40,11 @@ const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits} = requir
  *               contents:
  *                 type: array
  *                 items:
- *                   type: string
+ *                   type: string 
  *     responses:
  *       201:
  *         description: 일기 생성 성공
  */
-//  Flutter에서 일기 저장 요청 시 → 저장 + trigger check + 개입 시작까지 처리
 router.post('/', async (req, res) => {
   const { uid, diaryId, diaryDate, content } = req.body; // content는 하나의 문자열 (Flutter에서 전달)
 
@@ -117,8 +116,36 @@ router.post('/', async (req, res) => {
 });
 
 // 유저가 원하는 날짜를 입력 받아서 가장 최신의 일기 데이터를 반환
-// request(uid, diaryDate)| uid:유저 uid, diaryDate: 원하는 날짜(형식:yyyy-mm-dd)
-// return| {content: "일기 내용"}
+/**
+ * @swagger
+ * /diaries/lastest-content?$uid={uid}&$diaryDate={diaryDate}
+ *  get:
+ *    summary: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
+ * tags: [Diaries]
+ *     requestBody:
+ *       description: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - uid
+ *               - diaryDate
+ *             properties:
+ *               uid:
+ *                 type: string
+ *               diaryDate:
+ *                 type: string
+ *                 example: "yyyy-mm-dd"
+ *     responses:
+ *       201:
+ *        description: {content: "내용"} 형식으로 결과 반환
+ *       400: 
+ *        uid, diaryDate 값 or 변수 이름 에러
+ *       500:
+ *        description: 서버 이슈 
+ */
 router.get('/latest-content', async (req, res) => {
   try {
     const { uid, diaryDate } = req.query; // GET 방식의 쿼리 파라미터로 가정
@@ -141,7 +168,7 @@ router.get('/latest-content', async (req, res) => {
 
     // contents 반환 (배열)
     console.log(uid + ": " +diaryDate + ", " + latestDiary.contents);
-    return res.json({ contents: latestDiary.contents });
+    return res.status(201).json({ contents: latestDiary.contents });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Internal server error' });
@@ -149,6 +176,23 @@ router.get('/latest-content', async (req, res) => {
 });
 
 // 유저의 전체 다이어리 데이터 반환하는 api
+/**
+ * @swagger
+ * /diaries/AlldiaryId?$uid={uid}:
+ *   get:
+ *     summary: 유저가 갖고있는 일기 데이터의 날짜를 반환
+ *     tags: [Diaries]
+ *     parameters:
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: "유저 uid"
+ *     responses:
+ *       200:
+ *         description: 갖고있는 일기 날짜 리스트 형태 반환
+ */
 router.get('/AlldiaryId', async(req, res) =>{
   try{
     const user = await User.findOne({uid: req.query.uid});
@@ -172,7 +216,7 @@ router.get('/AlldiaryId', async(req, res) =>{
     // 3. diaryDate: contents만 추출해서 리턴
     const result = {};
     for (const [date, diary] of Object.entries(diaryMap)) {
-      result[date] = diary.contents;
+      result.append(diary.contents);
     }
     console.log(result);
     return res.json(result);
@@ -185,7 +229,7 @@ router.get('/AlldiaryId', async(req, res) =>{
  * @swagger
  * /diaries/{diaryId}:
  *   get:
- *     summary: 특정 일기 조회
+ *     summary: diaryId로 데이터 반환
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
