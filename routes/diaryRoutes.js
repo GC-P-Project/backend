@@ -45,13 +45,13 @@ const {detectTrigger} = require('../utils/gptClient');
  *         description: 일기 생성 성공
  */
 //  Flutter에서 일기 저장 요청 시 → 저장 + trigger check + 개입 시작까지 처리
+// 
 router.post('/', async (req, res) => {
   const { uid, diaryId, diaryDate, content } = req.body; // content는 하나의 문자열 (Flutter에서 전달)
 
   try {
     const user = await User.findOne({ uid });
-    console.log(uid+ ': '+ user);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: 'User not found: '+ user });
 
     // 일기 contents 배열로 변환 (줄바꿈 기준)
     const contents = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -64,6 +64,8 @@ router.post('/', async (req, res) => {
       contents
     });
     await diary.save();
+    
+    console.log(user.id + "Diary save");
 
     //  트리거 + 감정 강도 검사
     let interventionStarted = false;
@@ -104,8 +106,10 @@ router.post('/', async (req, res) => {
     }
 
     if (interventionStarted) {
+      console.log(user.id + 'Diary saved & intervention started');
       return res.status(200).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
     } else {
+      console.log(user.id + 'Diary save without intervention');
       return res.status(200).json({ message: 'Diary saved without intervention' });
     }
 
