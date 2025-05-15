@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Diary = require('../models/diaryModel');
 const User = require('../models/UserModel');
-
+const detectTrigger = require('../utils/gptClient');
 /**
  * @swagger
  * tags:
@@ -130,6 +130,7 @@ router.post('/', async (req, res) => {
  *       200:
  *         description: 일기 조회 성공
  */
+// 특정 다이어리 
 router.get('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
