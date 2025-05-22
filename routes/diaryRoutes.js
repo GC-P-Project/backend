@@ -146,11 +146,11 @@ router.post('/', async (req, res) => {
  *                 example: "yyyy-mm-dd"
  *    responses:
  *       201:
- *        description: {content: "내용"} 형식으로 결과 반환
+ *         description: {content: "내용"} 형식으로 결과 반환
  *       400: 
- *        uid, diaryDate 값 or 변수 이름 에러
+ *         description: uid, diaryDate 값 or 변수 이름 에러
  *       500:
- *        description: 서버 이슈 
+ *         description: 서버 이슈 
  */
 router.get('/latest-content', async (req, res) => {
   try {
