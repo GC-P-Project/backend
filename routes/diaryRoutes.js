@@ -124,7 +124,7 @@ router.post('/', async (req, res) => {
 // 유저가 원하는 날짜를 입력 받아서 가장 최신의 일기 데이터를 반환
 /**
  * @swagger
- * /diaries/lastest-content?$uid={uid}&$diaryDate={diaryDate}
+ * /diaries/lastest-content?$uid={uid}&$diaryDate={diaryDate}:
  *  get:
  *    summary: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
  *    tags: [Diaries]
@@ -232,6 +232,68 @@ router.get('/AlldiaryId', async(req, res) =>{
   }
 });
 
+/**
+ * @swagger
+ * /diaries/AlldiaryDate?$uid={uid}:
+ *   get:
+ *     summary: 유저가 갖고있는 일기 데이터의 날짜를 반환
+ *     tags: [Diaries]
+ *     parameters:
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: "유저 uid"
+ *     responses:
+ *       200:
+ *         description: 갖고있는 일기 날짜 리스트 형태 반환
+ *       201:
+ *         description: 유저가 작성한 일기가 없음
+ *       404:
+ *         description: 유저를 찾을 수 없음
+ *       500:
+ *         description: 서버 오류
+ */
+router.get('/AlldiaryDate', async(req,res) =>{
+  try{
+    const user = await User.findOne({uid: req.query.uid});
+    if (!user) return res.status(404).json({ error: 'user uid not found' });
+    
+    // uid로 직접 조회 (user 객체가 아닌 uid 문자열 사용)
+    const diaries = await Diary.find({ uid: req.query.uid });
+    if (diaries.length === 0) { // 일기가 없는 경우 처리
+      console.log('해당 유저의 일기가 없습니다:', req.query.uid);
+      return res.status(201).json({
+        success: true,
+        uid: req.query.uid,
+        dates: [],
+        count: 0,
+        message: '작성된 일기가 없습니다.'
+      });
+    }
+
+    // diaryDate만 추출하여 배열로 반환
+    const diaryDates = diaries.map(diary => diary.diaryDate);
+    
+    // 중복 제거 (같은 날짜에 여러 일기가 있을 수 있으므로)
+    const uniqueDates = [...new Set(diaryDates)];
+    
+    // 날짜 순으로 정렬
+    uniqueDates.sort();
+
+    console.log('조회된 일기 날짜들:', uniqueDates);
+    return res.status(200).json({
+      success: true,
+      uid: req.query.uid,
+      dates: uniqueDates,
+      count: uniqueDates.length
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 // 특정 다이어리 데이터 반환하기
 /**
  * @swagger
