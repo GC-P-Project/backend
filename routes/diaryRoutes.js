@@ -121,8 +121,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// 유저가 원하는 날짜를 입력 받아서 가장 최신의 일기 데이터를 반환
-/**
+/** 특정 유저의 특정 날짜에 작성된 가장 최신 일기 내용 조회
  * @swagger
  * /diaries/latest-content:
  *   get:
@@ -132,10 +131,6 @@ router.post('/', async (req, res) => {
  *       같은 날짜에 여러 개의 일기가 있을 경우, createdAt이 가장 늦은 일기를 반환합니다.
  *       
  *       **Flutter/Dart 프론트엔드 호출 방법:**
- *       ```dart
- *       import 'dart:convert';
- *       import 'package:http/http.dart' as http;
- *       
  *       // 기본 호출 함수
  *       Future<Map<String, dynamic>> getLatestDiaryContent(String uid, String diaryDate) async {
  *         final response = await http.get(
@@ -261,7 +256,7 @@ router.get('/latest-content', async (req, res) => {
     if (!latestDiary) {
       // 해당 일기가 없는 경우
       console.log(uid + ": " +diaryDate + ", ");
-      return res.json({ contents: ""});
+      return res.status(200).json({ contents: ""});
     }
 
     // contents 반환 (배열)
