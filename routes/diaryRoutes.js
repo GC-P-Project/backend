@@ -127,8 +127,8 @@ router.post('/', async (req, res) => {
  * /diaries/lastest-content?$uid={uid}&$diaryDate={diaryDate}
  *  get:
  *    summary: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
- * tags: [Diaries]
- *     requestBody:
+ *    tags: [Diaries]
+ *    requestBody:
  *       description: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
  *       required: true
  *       content:
@@ -144,7 +144,7 @@ router.post('/', async (req, res) => {
  *               diaryDate:
  *                 type: string
  *                 example: "yyyy-mm-dd"
- *     responses:
+ *    responses:
  *       201:
  *        description: {content: "내용"} 형식으로 결과 반환
  *       400: 
