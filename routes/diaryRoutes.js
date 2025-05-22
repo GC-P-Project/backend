@@ -18,7 +18,8 @@ const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits} = requir
  *     summary: (수정필요)일기 저장 요청 시 → 저장 + trigger check + 개입 시작까지 처리
  *     tags: [Diaries]
  *     requestBody:
- *       description: 일기를 저장하면 gpt가 trigger check까지 하는 코드.
+ *       description: | 
+ *         일기를 저장하면 gpt가 trigger check까지 하는 코드.
  *       required: true
  *       content:
  *         application/json:
@@ -284,7 +285,7 @@ router.get('/latest-content', async (req, res) => {
  *           description: "유저 uid"
  *     responses:
  *       200:
- *         description: {날짜: 내용} 형식으로 유저가 가진 일기의 최신 데이터를 반환
+ *         description: "{날짜: 내용} 형식으로 유저가 가진 일기의 최신 데이터를 반환"
  */
 router.get('/AlldiaryId', async(req, res) =>{
   try{
