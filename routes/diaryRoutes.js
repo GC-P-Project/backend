@@ -132,6 +132,7 @@ router.post('/', async (req, res) => {
  *       같은 날짜에 여러 개의 일기가 있을 경우, createdAt이 가장 늦은 일기를 반환합니다.
  *       
  *       **Flutter/Dart 프론트엔드 호출 방법:**
+ *       '''
  *       // 기본 호출 함수
  *       Future<Map<String, dynamic>> getLatestDiaryContent(String uid, String diaryDate) async {
  *         final response = await http.get(
@@ -140,7 +141,7 @@ router.post('/', async (req, res) => {
  *         
  *         return json.decode(response.body);
  *       }
- * 
+ *       '''
  *     tags: [Diaries]
  *     parameters:
  *       - in: query
@@ -328,9 +329,11 @@ router.get('/AlldiaryId', async(req, res) =>{
  *        예시: ["2025-05-01", "2025-05-02", ...]
  *     
  *        ** 코드 호출 예시 **
+ *        '''
  *        final response = await http.get(
  *           Uri.parse('$baseUrl/diaries/AlldiaryDates?uid=$uid'),
  *        );
+ *        '''
  * 
  *     tags: [Diaries]
  *     parameters:
@@ -384,28 +387,56 @@ router.get('/AlldiaryDates', async(req,res) =>{
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
-// 특정 다이어리 데이터 반환하기
-/**
+
+/** 특정 날짜의 유저 최신 일기 정보를 반환
  * @swagger
- * /diaries/{diaryId}:
+ * /diaries/diaryContent:
  *   get:
- *     summary: diaryId로 데이터 반환
+ *     summary: 특정 날짜의 유저 최신 일기 정보를 반환
+ *     description: |
+ *        유저 UID와 일기 날짜를 이용해 해당 날짜에 작성된 일기 중 가장 최신(createdAt 기준) 일기를 반환합니다.
+ *     
+ *     ** api 호출 방법 **
+ *     '''
+ *     final response = await http.get(
+ *        Uri.parse('$baseUrl/diaryContent?uid=$uid&diaryDate=$diaryDate');
+ *     );
  *     tags: [Diaries]
  *     parameters:
- *       - in: path
- *         name: diaryId
+ *       - name: uid
+ *         in: query
  *         required: true
  *         schema:
  *           type: string
+ *         description: 사용자 uid
+ *       - name: diaryDate
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 선택한 일기의 날짜(!yyyy-dd-mm 형식 유지!)
  *     responses:
  *       200:
  *         description: 일기 조회 성공 --> 일기 텍스트 반환
+ *       404:
+ *         description: 다이어리 아이디가 잘못됨
  *       500:
- *         description: 일기 조회 실패
+ *         description: 서버 에러 및 기타 에러
  */
-router.get('/:diaryId', async (req, res) => {
+router.get('/diaryContent', async (req, res) => {
   try {
-    const diary = await Diary.findOne({ diaryId: req.params.diaryId });
+    const { uid, diaryDate } = req.query;
+    
+    if (!uid || !diaryDate) {
+      return res.status(400).json({ error: 'uid and diaryDate are required' });
+    }
+    
+    const diary = await Diary.findOne({ 
+      uid: uid, 
+      diaryDate: diaryDate 
+    })
+    .sort({ createdAt: -1 }); // createdAt 기준 내림차순 정렬 (가장 최신이 먼저)
+    
     if (!diary) return res.status(404).json({ error: 'Diary not found' });
     res.status(200).json(diary);
   } catch (err) {
