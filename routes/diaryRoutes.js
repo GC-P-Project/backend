@@ -388,22 +388,22 @@ router.get('/AlldiaryDates', async(req,res) =>{
   }
 });
 
-/** 특정 날짜의 유저 최신 일기 정보를 반환
+/**
  * @swagger
  * /diaries/diaryContent:
  *   get:
  *     summary: 특정 날짜의 유저 최신 일기 정보를 반환
  *     description: |
- *        유저 UID와 일기 날짜를 이용해 해당 날짜에 작성된 일기 중 가장 최신(createdAt 기준) 일기를 반환합니다.
- *     
- *     ** api 호출 방법 **
- *     '''
- *     final response = await http.get(
- *        Uri.parse('$baseUrl/diaryContent?uid=$uid&diaryDate=$diaryDate');
- *     );
- *     '''
- * 
- *     tags: [Diaries]
+ *       유저 UID와 일기 날짜를 이용해 해당 날짜에 작성된 일기 중 가장 최신(createdAt 기준) 일기를 반환합니다.
+ *       
+ *       Flutter/Dart 호출 예시:
+ *       ```dart
+ *       final response = await http.get(
+ *         Uri.parse('$baseUrl/diaries/diaryContent?uid=$uid&diaryDate=$diaryDate')
+ *       );
+ *       ```
+ *     tags:
+ *       - Diaries
  *     parameters:
  *       - name: uid
  *         in: query
@@ -411,19 +411,81 @@ router.get('/AlldiaryDates', async(req,res) =>{
  *         schema:
  *           type: string
  *         description: 사용자 uid
+ *         example: "user123"
  *       - name: diaryDate
  *         in: query
  *         required: true
  *         schema:
  *           type: string
- *         description: 선택한 일기의 날짜(!yyyy-dd-mm 형식 유지!)
+ *           format: date
+ *         description: 선택한 일기의 날짜 (yyyy-mm-dd 형식 유지)
+ *         example: "2025-05-21"
  *     responses:
  *       200:
- *         description: 일기 조회 성공 --> 일기 텍스트 반환
+ *         description: 일기 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: MongoDB ObjectId
+ *                 uid:
+ *                   type: string
+ *                   description: 사용자 고유 식별자
+ *                 diaryDate:
+ *                   type: string
+ *                   format: date
+ *                   description: 일기 날짜
+ *                 contents:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: 일기 내용 배열
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: 일기 생성 날짜 및 시간
+ *             example:
+ *               _id: "60f7b1b3b3f3f3f3f3f3f3f3"
+ *               uid: "user123"
+ *               diaryDate: "2025-05-21"
+ *               contents: ["오늘은 좋은 하루였다.", "친구들과 즐거운 시간을 보냈다."]
+ *               createdAt: "2025-05-21T15:30:45.123Z"
+ *       400:
+ *         description: 잘못된 요청 - uid 또는 diaryDate 누락
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: "uid and diaryDate are required"
  *       404:
- *         description: 다이어리 아이디가 잘못됨
+ *         description: 일기를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: "Diary not found"
  *       500:
- *         description: 서버 에러 및 기타 에러
+ *         description: 서버 내부 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *             example:
+ *               error: "Internal server error message"
  */
 router.get('/diaryContent', async (req, res) => {
   try {
