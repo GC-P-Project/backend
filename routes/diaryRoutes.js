@@ -124,7 +124,7 @@ router.post('/', async (req, res) => {
 // 유저가 원하는 날짜를 입력 받아서 가장 최신의 일기 데이터를 반환
 /**
  * @swagger
- * /diaries/lastest-content?$uid={uid}&$diaryDate={diaryDate}:
+ * /diaries/lastest-content?$uid={uid}&&$diaryDate={diaryDate}:
  *  get:
  *    summary: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
  *    tags: [Diaries]
@@ -186,7 +186,7 @@ router.get('/latest-content', async (req, res) => {
  * @swagger
  * /diaries/AlldiaryId?$uid={uid}:
  *   get:
- *     summary: 유저가 갖고있는 일기 데이터의 날짜를 반환
+ *     summary: (코드수정예정)유저의 최신 일기를 반환 
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -197,7 +197,7 @@ router.get('/latest-content', async (req, res) => {
  *           description: "유저 uid"
  *     responses:
  *       200:
- *         description: 갖고있는 일기 날짜 리스트 형태 반환
+ *         description: {날짜: 내용} 형식으로 유저가 가진 일기의 최신 데이터를 반환
  */
 router.get('/AlldiaryId', async(req, res) =>{
   try{
@@ -255,7 +255,7 @@ router.get('/AlldiaryId', async(req, res) =>{
  *       500:
  *         description: 서버 오류
  */
-router.get('/AlldiaryDate', async(req,res) =>{
+router.get('/AlldiaryDates', async(req,res) =>{
   try{
     const user = await User.findOne({uid: req.query.uid});
     if (!user) return res.status(404).json({ error: 'user uid not found' });
