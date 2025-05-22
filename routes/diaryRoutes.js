@@ -234,7 +234,7 @@ router.get('/AlldiaryId', async(req, res) =>{
 
 /**
  * @swagger
- * /diaries/AlldiaryDate?$uid={uid}:
+ * /diaries/AlldiaryDates?$uid={uid}:
  *   get:
  *     summary: 유저가 갖고있는 일기 데이터의 날짜를 반환
  *     tags: [Diaries]
