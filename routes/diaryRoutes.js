@@ -128,7 +128,7 @@ router.post('/', async (req, res) => {
  *   get:
  *     summary: 특정 유저의 특정 날짜에 작성된 가장 최신 일기 내용 조회
  *     description: |
- *       유저 UID와 날짜를 입력받아 해당 날짜에 작성된 일기 중 가장 최근에 생성된(createdAt 기준) 일기의 내용을 반환합니다.
+ *       유저 UID와 날짜를 입력받아 해당 날짜에 작성된 일기 중 가장 최근에 생성된(createdAt 기준) 일기의 내용을 반환합니다.\
  *       같은 날짜에 여러 개의 일기가 있을 경우, createdAt이 가장 늦은 일기를 반환합니다.
  *       
  *       **Flutter/Dart 프론트엔드 호출 방법:**
@@ -140,6 +140,7 @@ router.post('/', async (req, res) => {
  *         
  *         return json.decode(response.body);
  *       }
+ * 
  *     tags: [Diaries]
  *     parameters:
  *       - in: query
@@ -148,10 +149,9 @@ router.post('/', async (req, res) => {
  *         schema:
  *           type: string
  *         description: |
- *           사용자의 고유 식별자 (User ID)
+ *           사용자의 고유 식별자 (유저 uid)
  *           - 로그인한 사용자의 UID를 전달
  *           - 빈 문자열이나 null 값은 허용되지 않음
- *         example: "user123"
  *       - in: query
  *         name: diaryDate
  *         required: true
@@ -163,7 +163,6 @@ router.post('/', async (req, res) => {
  *           - 반드시 YYYY-MM-DD 형식으로 입력
  *           - 예: 2024-01-15, 2024-12-25
  *           - 존재하지 않는 날짜는 오류 발생 가능
- *         example: "2024-01-15"
  *     responses:
  *       200:
  *         description: |
@@ -198,11 +197,7 @@ router.post('/', async (req, res) => {
  *               success:
  *                 summary: 일기를 성공적으로 찾은 경우
  *                 value:
- *                   contents: "오늘은 정말 좋은 하루였다. 친구들과 함께 카페에서 즐거운 시간을 보냈고, 새로운 책도 읽기 시작했다. 내일도 이런 하루가 되었으면 좋겠다."
- *               array_contents:
- *                 summary: 일기 내용이 배열인 경우
- *                 value:
- *                   contents: ["첫 번째 문단입니다.", "두 번째 문단입니다.", "세 번째 문단입니다."]
+ *                   contents: ["오늘은 정말 좋은 하루였다."]
  *       400:
  *         description: |
  *           필수 파라미터 누락 또는 잘못된 형식
@@ -274,7 +269,10 @@ router.get('/latest-content', async (req, res) => {
  * @swagger
  * /diaries/AlldiaryId?$uid={uid}:
  *   get:
- *     summary: (코드수정예정)유저의 최신 일기를 반환 
+ *     summary: (코드수정예정)유저의 최신 일기를 반환
+ *     description: |
+ *        유저 uid를 받아서 해당 유저가 가진 전체 최신 일기 날짜와 일기 내용을 찾아서 "날짜":"내용" 형식으로 반환합니다.\
+ *        예시: {"2025-01-01": "오늘은 ~", "2025-01-02": "즐거운 하루"} 
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -322,9 +320,18 @@ router.get('/AlldiaryId', async(req, res) =>{
 
 /**
  * @swagger
- * /diaries/AlldiaryDates?$uid={uid}:
+ * /diaries/AlldiaryDates:
  *   get:
- *     summary: 유저가 갖고있는 일기 데이터의 날짜를 반환
+ *     summary: 유저가 갖고있는 일기 데이터의 전체 날짜를 반환
+ *     description: |
+ *        유저의 uid를 사용하여 유저가 가진 일기 데이터의 전체 날짜를 리스트 형태로 반환합니다.\
+ *        예시: ["2025-05-01", "2025-05-02", ...]
+ *     
+ *     ** 코드 호출 예시 **
+ *     final response = await http.get(
+ *           Uri.parse('$baseUrl/diaries/AlldiaryDates?uid=$uid'),
+ *     );
+ * 
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -336,8 +343,16 @@ router.get('/AlldiaryId', async(req, res) =>{
  *     responses:
  *       200:
  *         description: 갖고있는 일기 날짜 리스트 형태 반환
+ *         content:
+ *            examples:
+ *              values:
+ *                contents: ["2025-05-01", "2025-05-02", ...] 
  *       201:
- *         description: 유저가 작성한 일기가 없음
+ *         description: 유저가 작성한 일기가 없는 경우 빈 배열 반환
+ *         content:
+ *            examples:
+ *              values:
+ *                contents: [] 
  *       404:
  *         description: 유저를 찾을 수 없음
  *       500:
@@ -354,10 +369,7 @@ router.get('/AlldiaryDates', async(req,res) =>{
       console.log('해당 유저의 일기가 없습니다:', req.query.uid);
       return res.status(201).json({
         success: true,
-        uid: req.query.uid,
-        dates: [],
-        count: 0,
-        message: '작성된 일기가 없습니다.'
+        diaryDate: [],
       });
     }
 
@@ -373,9 +385,7 @@ router.get('/AlldiaryDates', async(req,res) =>{
     console.log('조회된 일기 날짜들:', uniqueDates);
     return res.status(200).json({
       success: true,
-      uid: req.query.uid,
-      dates: uniqueDates,
-      count: uniqueDates.length
+      diaryDate: uniqueDates,
     });
   } catch (err) {
     console.error(err);
