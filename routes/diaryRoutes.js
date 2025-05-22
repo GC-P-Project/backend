@@ -111,10 +111,10 @@ router.post('/', async (req, res) => {
 
     if (interventionStarted) {
       console.log(user.id+': Diary saved & intervention started');
-      return res.status(202).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
+      return res.status(201).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
     } else {
       console.log(user.id+': Diary saved & intervention not started');
-      return res.status(203).json({ message: 'Diary saved & intervention not started' });
+      return res.status(202).json({ message: 'Diary saved & intervention not started' });
     }
 
   } catch (err) {
