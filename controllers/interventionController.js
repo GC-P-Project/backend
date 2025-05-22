@@ -2,8 +2,10 @@
 const User = require('../models/UserModel');
 const InterventionLog = require('../models/InterventionLog');
 const { detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits } = require('../utils/gptClient');
+const { v4: uuidv4 } = require('uuid');
 
-let sessionMemory = {};  
+let sessionMemory = {}; 
+
 
 exports.startIntervention = async (req, res) => {
   const { uid, text } = req.body;
@@ -69,20 +71,22 @@ exports.continueIntervention = async (req, res) => {
 };
 
 exports.exitIntervention = async (req, res) => {
-  const { uid, diaryId, diaryDate, contents, conversation } = req.body;
+  const { uid, diaryId, diaryDate, contents, conversation, LogId } = req.body;
   try {
+    const logId = req.body.logId || uuidv4(); 
     const session = sessionMemory[uid];
     if (!session) return res.status(400).json({ error: 'No session to exit' });
 
-    await InterventionLog.create({
+    const newLog = await InterventionLog.create({
       uid,
       diaryId,
       diaryDate,
+      LogId: logId, 
       revisionNumber: 1,
       conversation,
-      trigger: session.trigger,
-      triggeredText: session.triggeredText
-    });
+      trigger: '종료시점 저장', 
+      triggeredText: contents.join('\n')
+});
 
     await updateUserTraits(uid, contents, conversation);
     delete sessionMemory[uid];
