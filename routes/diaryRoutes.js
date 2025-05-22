@@ -327,10 +327,10 @@ router.get('/AlldiaryId', async(req, res) =>{
  *        유저의 uid를 사용하여 유저가 가진 일기 데이터의 전체 날짜를 리스트 형태로 반환합니다.\
  *        예시: ["2025-05-01", "2025-05-02", ...]
  *     
- *     ** 코드 호출 예시 **
- *     final response = await http.get(
+ *        ** 코드 호출 예시 **
+ *        final response = await http.get(
  *           Uri.parse('$baseUrl/diaries/AlldiaryDates?uid=$uid'),
- *     );
+ *        );
  * 
  *     tags: [Diaries]
  *     parameters:
@@ -343,16 +343,8 @@ router.get('/AlldiaryId', async(req, res) =>{
  *     responses:
  *       200:
  *         description: 갖고있는 일기 날짜 리스트 형태 반환
- *         content:
- *            examples:
- *              values:
- *                contents: ["2025-05-01", "2025-05-02", ...] 
  *       201:
  *         description: 유저가 작성한 일기가 없는 경우 빈 배열 반환
- *         content:
- *            examples:
- *              values:
- *                contents: [] 
  *       404:
  *         description: 유저를 찾을 수 없음
  *       500:
