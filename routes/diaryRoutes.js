@@ -110,11 +110,11 @@ router.post('/', async (req, res) => {
     }
 
     if (interventionStarted) {
-      console.log(user.id+'${user.id} : Diary saved & intervention started');
+      console.log(user.id+': Diary saved & intervention started');
       return res.status(202).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
     } else {
-      console.log(user.id+'${user.id} Diary save without intervention');
-      return res.status(203).json({ message: 'Diary saved without intervention' });
+      console.log(user.id+': Diary saved & intervention not started');
+      return res.status(203).json({ message: 'Diary saved & intervention not started' });
     }
 
   } catch (err) {
@@ -122,7 +122,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-/** 특정 유저의 특정 날짜에 작성된 가장 최신 일기 내용 조회
+/** 특정 유저의 특정 날짜에 작성된 가장 최신 일기 내용 조회 
  * @swagger
  * /diaries/latest-content:
  *   get:
@@ -132,7 +132,7 @@ router.post('/', async (req, res) => {
  *       같은 날짜에 여러 개의 일기가 있을 경우, createdAt이 가장 늦은 일기를 반환합니다.
  *       
  *       **Flutter/Dart 프론트엔드 호출 방법:**
- *       '''
+ *       '''dart
  *       // 기본 호출 함수
  *       Future<Map<String, dynamic>> getLatestDiaryContent(String uid, String diaryDate) async {
  *         final response = await http.get(
@@ -265,12 +265,11 @@ router.get('/latest-content', async (req, res) => {
   }
 });
 
-// 유저의 전체 다이어리 데이터 반환하는 api
-/**
+/** (코드수정예정)유저의 최신 일기를 전부 반환 
  * @swagger
  * /diaries/AlldiaryId?$uid={uid}:
  *   get:
- *     summary: (코드수정예정)유저의 최신 일기를 반환
+ *     summary: (코드수정예정)유저의 최신 일기를 전부 반환
  *     description: |
  *        유저 uid를 받아서 해당 유저가 가진 전체 최신 일기 날짜와 일기 내용을 찾아서 "날짜":"내용" 형식으로 반환합니다.\
  *        예시: {"2025-01-01": "오늘은 ~", "2025-01-02": "즐거운 하루"} 
@@ -319,7 +318,7 @@ router.get('/AlldiaryId', async(req, res) =>{
   }
 });
 
-/**
+/** 유저가 갖고있는 일기 데이터의 전체 날짜를 반환 
  * @swagger
  * /diaries/AlldiaryDates:
  *   get:
@@ -329,7 +328,7 @@ router.get('/AlldiaryId', async(req, res) =>{
  *        예시: ["2025-05-01", "2025-05-02", ...]
  *     
  *        ** 코드 호출 예시 **
- *        '''
+ *        '''dart
  *        final response = await http.get(
  *           Uri.parse('$baseUrl/diaries/AlldiaryDates?uid=$uid'),
  *        );
@@ -388,7 +387,7 @@ router.get('/AlldiaryDates', async(req,res) =>{
   }
 });
 
-/**
+/** 특정 날짜의 유저 최신 일기 정보를 반환 
  * @swagger
  * /diaries/diaryContent:
  *   get:
@@ -508,7 +507,7 @@ router.get('/diaryContent', async (req, res) => {
   }
 });
 
-/**
+/** 일기 수정 (새로운 내용 추가) 
  * @swagger
  * /diaries/{diaryId}:
  *   put:
@@ -538,7 +537,6 @@ router.get('/diaryContent', async (req, res) => {
  *       500:
  *         description: 서버 에러 메세지
  */
-// 일기 수정하는 내용
 router.put('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
@@ -561,7 +559,7 @@ router.put('/:diaryId', async (req, res) => {
   }
 });
 
-/**
+/** 특정 일기 삭제
  * @swagger
  * /diaries/{diaryId}:
  *   delete:
