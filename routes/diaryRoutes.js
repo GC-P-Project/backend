@@ -237,7 +237,7 @@ router.get('/AlldiaryId', async(req, res) =>{
  * @swagger
  * /diaries/{diaryId}:
  *   get:
- *     summary: (수정필요)diaryId로 데이터 반환
+ *     summary: diaryId로 데이터 반환
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -247,13 +247,15 @@ router.get('/AlldiaryId', async(req, res) =>{
  *           type: string
  *     responses:
  *       200:
- *         description: 일기 조회 성공
+ *         description: 일기 조회 성공 --> 일기 텍스트 반환
+ *       500:
+ *         description: 일기 조회 실패
  */
 router.get('/:diaryId', async (req, res) => {
   try {
     const diary = await Diary.findOne({ diaryId: req.params.diaryId });
     if (!diary) return res.status(404).json({ error: 'Diary not found' });
-    res.json(diary);
+    res.status(200).json(diary);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -263,7 +265,7 @@ router.get('/:diaryId', async (req, res) => {
  * @swagger
  * /diaries/{diaryId}:
  *   put:
- *     summary: (수정필요)일기 수정 (새로운 내용 추가)
+ *     summary: 일기 수정 (새로운 내용 추가)
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -283,7 +285,11 @@ router.get('/:diaryId', async (req, res) => {
  *                 type: string
  *     responses:
  *       200:
- *         description: 일기 수정 성공
+ *         description: {message: 성공 로그, lastestContent: 일기 수정 내용}
+ *       400:
+ *         description: 일기 내용 변화 없음
+ *       500:
+ *         description: 서버 에러 메세지
  */
 // 일기 수정하는 내용
 router.put('/:diaryId', async (req, res) => {
@@ -299,9 +305,9 @@ router.put('/:diaryId', async (req, res) => {
     diary.contents.push(newContent);
     await diary.save();
 
-    res.json({
+    res.status(200).json({
       message: 'Diary updated successfully',
-      latestContent: newContent,
+      lastestContent: newContent,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -312,7 +318,7 @@ router.put('/:diaryId', async (req, res) => {
  * @swagger
  * /diaries/{diaryId}:
  *   delete:
- *     summary: (수정필요)특정 일기 삭제
+ *     summary: 특정 일기 삭제
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -323,6 +329,10 @@ router.put('/:diaryId', async (req, res) => {
  *     responses:
  *       200:
  *         description: 일기 삭제 성공
+ *       404:
+ *         description: 다이어리 찾을 수 없음
+ *       500:
+ *         description: 서버 에러 메세지
  */
 router.delete('/:diaryId', async (req, res) => {
   try {
