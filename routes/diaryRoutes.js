@@ -124,33 +124,125 @@ router.post('/', async (req, res) => {
 // 유저가 원하는 날짜를 입력 받아서 가장 최신의 일기 데이터를 반환
 /**
  * @swagger
- * /diaries/lastest-content?$uid={uid}&&$diaryDate={diaryDate}:
- *  get:
- *    summary: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
- *    tags: [Diaries]
- *    requestBody:
- *       description: 유저가 원하는 날짜를 입력하면 해당하는 가장 최신 일기 데이터 반환
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - uid
- *               - diaryDate
- *             properties:
- *               uid:
- *                 type: string
- *               diaryDate:
- *                 type: string
- *                 example: "yyyy-mm-dd"
- *    responses:
+ * /diaries/latest-content:
+ *   get:
+ *     summary: 특정 유저의 특정 날짜에 작성된 가장 최신 일기 내용 조회
+ *     description: |
+ *       유저 UID와 날짜를 입력받아 해당 날짜에 작성된 일기 중 가장 최근에 생성된(createdAt 기준) 일기의 내용을 반환합니다.
+ *       같은 날짜에 여러 개의 일기가 있을 경우, createdAt이 가장 늦은 일기를 반환합니다.
+ *       
+ *       **Flutter/Dart 프론트엔드 호출 방법:**
+ *       ```dart
+ *       import 'dart:convert';
+ *       import 'package:http/http.dart' as http;
+ *       
+ *       // 기본 호출 함수
+ *       Future<Map<String, dynamic>> getLatestDiaryContent(String uid, String diaryDate) async {
+ *         final response = await http.get(
+ *           Uri.parse('$baseUrl/diaries/latest-content?uid=$uid&diaryDate=$diaryDate'),
+ *         );
+ *         
+ *         return json.decode(response.body);
+ *       }
+ *     tags: [Diaries]
+ *     parameters:
+ *       - in: query
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: |
+ *           사용자의 고유 식별자 (User ID)
+ *           - 로그인한 사용자의 UID를 전달
+ *           - 빈 문자열이나 null 값은 허용되지 않음
+ *         example: "user123"
+ *       - in: query
+ *         name: diaryDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^\d{4}-\d{2}-\d{2}$'
+ *         description: |
+ *           조회할 일기의 날짜 (YYYY-MM-DD 형식)
+ *           - 반드시 YYYY-MM-DD 형식으로 입력
+ *           - 예: 2024-01-15, 2024-12-25
+ *           - 존재하지 않는 날짜는 오류 발생 가능
+ *         example: "2024-01-15"
+ *     responses:
+ *       200:
+ *         description: |
+ *           해당 날짜에 일기가 존재하지 않는 경우
+ *           빈 문자열("")을 contents에 담아서 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 contents:
+ *                   type: string
+ *                   description: 일기 내용 (해당 날짜에 일기가 없으면 빈 문자열)
+ *             examples:
+ *               no_diary:
+ *                 summary: 해당 날짜에 일기가 없는 경우
+ *                 value:
+ *                   contents: ""
  *       201:
- *         description: {content: "내용"} 형식으로 결과 반환
- *       400: 
- *         description: uid, diaryDate 값 or 변수 이름 에러
+ *         description: |
+ *           성공적으로 일기 내용을 찾아서 반환
+ *           해당 날짜의 가장 최신 일기 내용을 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 contents:
+ *                   type: string
+ *                   description: 해당 날짜의 가장 최신 일기 내용
+ *             examples:
+ *               success:
+ *                 summary: 일기를 성공적으로 찾은 경우
+ *                 value:
+ *                   contents: "오늘은 정말 좋은 하루였다. 친구들과 함께 카페에서 즐거운 시간을 보냈고, 새로운 책도 읽기 시작했다. 내일도 이런 하루가 되었으면 좋겠다."
+ *               array_contents:
+ *                 summary: 일기 내용이 배열인 경우
+ *                 value:
+ *                   contents: ["첫 번째 문단입니다.", "두 번째 문단입니다.", "세 번째 문단입니다."]
+ *       400:
+ *         description: |
+ *           필수 파라미터 누락 또는 잘못된 형식
+ *           - uid나 diaryDate가 없는 경우
+ *           - 파라미터가 빈 문자열인 경우
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 오류 메시지
+ *             examples:
+ *               missing_params:
+ *                 summary: 필수 파라미터 누락
+ *                 value:
+ *                   error: "uid와 diaryDate를 모두 입력해야 합니다."
  *       500:
- *         description: 서버 이슈 
+ *         description: |
+ *           서버 내부 오류
+ *           - 데이터베이스 연결 오류
+ *           - 예상치 못한 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: 오류 메시지
+ *             examples:
+ *               server_error:
+ *                 summary: 서버 내부 오류
+ *                 value:
+ *                   error: "Internal server error"
  */
 router.get('/latest-content', async (req, res) => {
   try {
