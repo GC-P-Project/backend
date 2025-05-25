@@ -20,12 +20,13 @@ exports.startIntervention = async (req, res) => {
 
     console.log('sentToGPT함수 시작중... messages:' + messages);
     const gptReply = await sendToGPT(messages);
+    console.log("sentToGPT함수 끝났음... gptReply: " + gptReply);
 
     // 트리거 키워드 감지 (간단한 예시)
     const triggerKeywords = ['무기력', '우울', '짜증', '불안'];
     const detected = triggerKeywords.find(word => text.includes(word));
-    
-    console.log("INTERVENTIONLOG>CRAEET 실행중....")
+    console.log("DETECETETD: "+ detected);
+    console.log("INTERVENTIONLOG>CRAEET 실행중....");
     const log = await InterventionLog.create({
       uid,
       diaryId: `diary_${uuidv4()}`,
