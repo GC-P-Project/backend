@@ -240,6 +240,6 @@ router.post('/exit', exitIntervention);
 
 
 
-router.put('/:diaryid', updateConversation);
+// router.put('/:diaryid', updateConversation);
 
 module.exports = router;
