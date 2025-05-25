@@ -9,6 +9,7 @@ const { updateUserTraits } = require('../utils/gptClient');
 exports.startIntervention = async (req, res) => {
   try {
     const { uid, text } = req.body;
+    console.log("UID: " + uid + ", text: " + text);
     if (!uid || !text) return res.status(400).json({ error: 'uid와 text가 필요합니다.' });
 
     const messages = [
@@ -35,8 +36,9 @@ exports.startIntervention = async (req, res) => {
       trigger: detected || '기타',
       triggeredText: text
     });
-
+    
     res.json({ intervene: true, gptReply });
+    console.log(uid + ': success startIntervention');
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

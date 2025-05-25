@@ -132,7 +132,7 @@ router.post('/', async (req, res) => {
  *       같은 날짜에 여러 개의 일기가 있을 경우, createdAt이 가장 늦은 일기를 반환합니다.
  *       
  *       **Flutter/Dart 프론트엔드 호출 방법:**
- *       '''dart
+ *       ```dart
  *       // 기본 호출 함수
  *       Future<Map<String, dynamic>> getLatestDiaryContent(String uid, String diaryDate) async {
  *         final response = await http.get(
@@ -141,7 +141,7 @@ router.post('/', async (req, res) => {
  *         
  *         return json.decode(response.body);
  *       }
- *       '''
+ *       ```
  *     tags: [Diaries]
  *     parameters:
  *       - in: query
@@ -561,13 +561,13 @@ router.put('/:diaryId', async (req, res) => {
 
 /** 특정 일기 삭제
  * @swagger
- * /diaries/{diaryId}:
+ * /diaries/deleteDiary:
  *   delete:
  *     summary: 특정 일기 삭제
  *     description: |
- *       '''dart
- *       Uri.parse('$baseUrl/diaries/deleteDiary?uid=$uid&diaryDate=$diaryDate'),
- *       '''
+ *       ```dart
+ *       Uri.parse('$baseUrl/diaries/deleteDiary?uid=$uid&diaryDate=$diaryDate')
+ *       ```
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
