@@ -96,3 +96,28 @@ exports.exitIntervention = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.updateConversation = async (req, res) => {
+  const { diaryId } = req.params;
+  const { conversation } = req.body;
+
+  if (!Array.isArray(conversation)) {
+    return res.status(400).json({ error: 'conversation must be an array' });
+  }
+
+  try {
+    const updated = await InterventionLog.findOneAndUpdate(
+      { diaryId },
+      { $set: { conversation } },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'InterventionLog not found' });
+    }
+
+    res.json({ message: 'Conversation updated', updated });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

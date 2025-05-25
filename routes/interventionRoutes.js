@@ -5,7 +5,8 @@ const InterventionLog = require('../models/InterventionLog');
 const {
   startIntervention,
   continueIntervention,
-  exitIntervention
+  exitIntervention,
+  updateConversation,
 } = require('../controllers/interventionController');
 
 /**
@@ -232,5 +233,9 @@ router.post('/continue', continueIntervention);
  *         description: 종료 성공
  */
 router.post('/exit', exitIntervention);
+
+
+
+router.put('/:diaryid', updateConversation);
 
 module.exports = router;
