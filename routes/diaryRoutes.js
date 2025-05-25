@@ -43,9 +43,9 @@ const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits} = requir
  *                 items:
  *                   type: string 
  *     responses:
- *       202:
+ *       200:
  *         description: 일기 생성 완료. gpt 개입 실행됨.
- *       203:
+ *       201:
  *         description: 일기 생성 완료. gpt 개입은 안됨
  *       404:
  *         description: uid로 유저 정보를 찾을 수 없음.
@@ -111,10 +111,10 @@ router.post('/', async (req, res) => {
 
     if (interventionStarted) {
       console.log(user.id+': Diary saved & intervention started');
-      return res.status(201).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
+      return res.status(200).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
     } else {
       console.log(user.id+': Diary saved & intervention not started');
-      return res.status(202).json({ message: 'Diary saved & intervention not started' });
+      return res.status(201).json({ message: 'Diary saved & intervention not started' });
     }
 
   } catch (err) {
@@ -567,7 +567,12 @@ router.put('/:diaryId', async (req, res) => {
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
- *         name: diaryId
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: diaryDate
  *         required: true
  *         schema:
  *           type: string
