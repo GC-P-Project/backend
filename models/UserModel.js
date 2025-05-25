@@ -57,6 +57,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
     default: false // 기본은 미동의 상태
+  },
+  emotion: {
+    type: String,
+    default: "중립"
   }
 }, { timestamps: true }); // createdAt, updatedAt 자동 생성
 

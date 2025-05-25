@@ -25,6 +25,10 @@ const diarySchema = new mongoose.Schema({
   contents: {
     type: [String], // 일기 내용 배열 (수정 버전별 저장)
     default: [],
+  },
+  emotion: {
+    type: String,
+    defualt: "중립",
   }
 });
 

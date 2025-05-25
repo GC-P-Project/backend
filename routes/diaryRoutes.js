@@ -68,7 +68,8 @@ router.post('/', async (req, res) => {
       uid,
       diaryId,
       diaryDate,
-      contents
+      contents,
+      emotion : "중립"
     });
     await diary.save();
 
