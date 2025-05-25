@@ -186,6 +186,7 @@ async function startInterventionSession(triggeredText, trigger, user, diaryObj) 
         return;
       } else {
         temp = temp + userInput;
+        console.log("temp: " + temp);
         messages.push({ role: "user", content: temp });
         intervention.conversation.push({ speaker: "user", message: temp });
         const gptReply = await sendToGPT(messages);
