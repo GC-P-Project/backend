@@ -242,5 +242,6 @@ module.exports = {
   detectTrigger,
   getEmotionIntensity,
   sendToGPT,
-  updateUserTraits
+  updateUserTraits,
+  initialSystemPrompt
 };
