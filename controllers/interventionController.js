@@ -9,24 +9,20 @@ const { updateUserTraits } = require('../utils/gptClient');
 exports.startIntervention = async (req, res) => {
   try {
     const { uid, text } = req.body;
-    console.log("UID: " + uid + ", text: " + text);
     if (!uid || !text) return res.status(400).json({ error: 'uid와 text가 필요합니다.' });
     
-    console.log("메세지 시작중 ...");
+    
     const messages = [
       { role: 'system', content: initialSystemPrompt },
       { role: 'user', content: text },
     ];
-    console.log("기본 프롬프트:  " + initialSystemPrompt);
-    console.log('sentToGPT함수 시작중... messages:' + messages);
+    
     const gptReply = await sendToGPT(messages);
-    console.log("sentToGPT함수 끝났음... gptReply: " + gptReply);
+    
 
     // 트리거 키워드 감지 (간단한 예시)
-    const triggerKeywords = ['무기력', '우울', '짜증', '불안'];
     const detected = triggerKeywords.find(word => text.includes(word));
-    console.log("DETECETETD: "+ detected);
-    console.log("INTERVENTIONLOG>CRAEET 실행중....");
+
     const log = await InterventionLog.create({
       uid,
       diaryId: `diary_${uuidv4()}`,
@@ -41,7 +37,6 @@ exports.startIntervention = async (req, res) => {
       triggeredText: text
     });
 
-    console.log(uid + ': success startIntervention');
     res.json({ intervene: true, gptReply });
   } catch (err) {
     res.status(500).json({ error: err.message });
