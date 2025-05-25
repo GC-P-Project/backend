@@ -63,6 +63,7 @@ router.post('/', async (req, res) => {
     const contents = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
     // 일기 저장
+    console.log("uid: " +uid +"\ndiaryID: " + diaryId + "\ndiaryDate: " + diaryDate + "\ncontents: +" +contents);
     const diary = new Diary({
       uid,
       diaryId,
