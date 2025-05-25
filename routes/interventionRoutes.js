@@ -110,13 +110,17 @@ router.get('/:diaryId', async (req, res) => {
  */
 router.put('/:diaryId', async (req, res) => {
   try {
-    const log = await InterventionLog.findOneAndUpdate(
+    const { conversation } = req.body;
+
+    const updated = await InterventionLog.findOneAndUpdate(
       { diaryId: req.params.diaryId },
-      req.body,
+      { $set: { conversation } },
       { new: true }
     );
-    if (!log) return res.status(404).json({ error: 'Intervention log not found' });
-    res.json(log);
+
+    if (!updated) return res.status(404).json({ error: 'Intervention log not found' });
+
+    res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

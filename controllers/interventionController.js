@@ -1,68 +1,55 @@
 // controllers/interventionController.js
-const User = require('../models/UserModel');
 const InterventionLog = require('../models/InterventionLog');
-const { detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits } = require('../utils/gptClient');
 const { v4: uuidv4 } = require('uuid');
+const { initialSystemPrompt, sendToGPT } = require('../utils/gptClient');
+const User = require('../models/UserModel');
+const { updateUserTraits } = require('../utils/gptClient');
 
-let sessionMemory = {}; 
-
-
+// POST /interventions/start
 exports.startIntervention = async (req, res) => {
-  const { uid, text } = req.body;
   try {
-    const user = await User.findOne({ uid });
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const trigger = detectTrigger(text);
-    if (!trigger) return res.status(200).json({ intervene: false, reason: 'No trigger word detected' });
-
-    const intensity = await getEmotionIntensity(text, user.traits);
-    if (intensity < user.interventionSensitivity) {
-      return res.status(200).json({ intervene: false, intensity });
-    }
-
-    const systemPrompt = `
-너는 감정 기반 일기 앱의 정서적 동반자야. 사용자의 감정에 공감하고 케어하는 역할을 맡았어.
-- 감정 트리거: 불안, 우울, 무기력, 짜증
-- 사용자의 말에 공감하고 부드러운 질문으로 대화를 이끌어가.
-- 조언은 최대한 뒤로 미루고, 종료 시점은 사용자에게 맡겨.
-예시: "많이 힘드셨겠어요. 어떤 점이 가장 힘들게 느껴졌나요?"
-`;
+    const { uid, text } = req.body;
+    if (!uid || !text) return res.status(400).json({ error: 'uid와 text가 필요합니다.' });
 
     const messages = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: text }
+      { role: 'system', content: initialSystemPrompt },
+      { role: 'user', content: text },
     ];
+
     const gptReply = await sendToGPT(messages);
 
-    sessionMemory[uid] = {
-      messages,
+    // 트리거 키워드 감지 (간단한 예시)
+    const triggerKeywords = ['무기력', '우울', '짜증', '불안'];
+    const detected = triggerKeywords.find(word => text.includes(word));
+
+    const log = await InterventionLog.create({
+      uid,
+      diaryId: `diary_${uuidv4()}`,
+      diaryDate: new Date().toISOString().slice(0, 10),
+      LogId: uuidv4(),
+      revisionNumber: 1,
       conversation: [
         { speaker: 'user', message: text },
-        { speaker: 'gpt', message: gptReply }
+        { speaker: 'gpt', message: gptReply },
       ],
-      trigger,
+      trigger: detected || '기타',
       triggeredText: text
-    };
+    });
 
-    res.status(200).json({ intervene: true, gptReply });
+    res.json({ intervene: true, gptReply });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// POST /interventions/continue
 exports.continueIntervention = async (req, res) => {
-  const { uid, userInput } = req.body;
   try {
-    const session = sessionMemory[uid];
-    if (!session) return res.status(400).json({ error: 'No active session found' });
+    const { uid, userInput } = req.body;
+    if (!uid || !userInput) return res.status(400).json({ error: 'uid와 userInput이 필요합니다.' });
 
-    session.messages.push({ role: 'user', content: userInput });
-    session.conversation.push({ speaker: 'user', message: userInput });
-
-    const gptReply = await sendToGPT(session.messages);
-    session.messages.push({ role: 'assistant', content: gptReply });
-    session.conversation.push({ speaker: 'gpt', message: gptReply });
+    const userTurn = { role: 'user', content: userInput };
+    const gptReply = await sendToGPT([userTurn]);
 
     res.json({ gptReply });
   } catch (err) {
@@ -70,54 +57,43 @@ exports.continueIntervention = async (req, res) => {
   }
 };
 
+// POST /interventions/exit
 exports.exitIntervention = async (req, res) => {
-  const { uid, diaryId, diaryDate, contents, conversation, LogId } = req.body;
   try {
-    const logId = req.body.logId || uuidv4(); 
-    const session = sessionMemory[uid];
-    if (!session) return res.status(400).json({ error: 'No session to exit' });
-
-    const newLog = await InterventionLog.create({
+    const {
       uid,
       diaryId,
       diaryDate,
-      LogId: logId, 
-      revisionNumber: 1,
+      contents,
       conversation,
-      trigger: '종료시점 저장', 
-      triggeredText: contents.join('\n')
-});
+      LogId,
+      trigger,
+      triggeredText
+    } = req.body;
 
-    await updateUserTraits(uid, contents, conversation);
-    delete sessionMemory[uid];
-
-    res.json({ message: 'Intervention completed and traits updated' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-exports.updateConversation = async (req, res) => {
-  const { diaryId } = req.params;
-  const { conversation } = req.body;
-
-  if (!Array.isArray(conversation)) {
-    return res.status(400).json({ error: 'conversation must be an array' });
-  }
-
-  try {
-    const updated = await InterventionLog.findOneAndUpdate(
-      { diaryId },
-      { $set: { conversation } },
-      { new: true }
-    );
-
-    if (!updated) {
-      return res.status(404).json({ error: 'InterventionLog not found' });
+    if (!uid || !diaryId || !conversation || !LogId) {
+      return res.status(400).json({ error: '필수 항목 누락' });
     }
 
-    res.json({ message: 'Conversation updated', updated });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const log = await InterventionLog.findOneAndUpdate(
+      { diaryId },
+      {
+        uid,
+        diaryId,
+        diaryDate,
+        LogId,
+        conversation,
+        trigger,
+        triggeredText,
+      },
+      { new: true, upsert: true }
+    );
+
+    // 사용자 trait 갱신
+    await updateUserTraits(uid, contents, conversation);
+
+    res.json({ message: '개입 종료 및 저장 완료', log });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
