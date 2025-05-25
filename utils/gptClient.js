@@ -106,6 +106,7 @@ async function sendToGPT(messages) {
       'Content-Type': 'application/json'
     }
   });
+  console.log("response 하하: " + response.statusCode);
   return response.data.choices[0].message.content;
 }
 

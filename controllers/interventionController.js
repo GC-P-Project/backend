@@ -17,7 +17,7 @@ exports.startIntervention = async (req, res) => {
       { role: 'system', content: initialSystemPrompt },
       { role: 'user', content: text },
     ];
-
+    console.log("기본 프롬프트:  " + initialSystemPrompt);
     console.log('sentToGPT함수 시작중... messages:' + messages);
     const gptReply = await sendToGPT(messages);
     console.log("sentToGPT함수 끝났음... gptReply: " + gptReply);
