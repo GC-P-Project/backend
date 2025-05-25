@@ -564,6 +564,10 @@ router.put('/:diaryId', async (req, res) => {
  * /diaries/{diaryId}:
  *   delete:
  *     summary: 특정 일기 삭제
+ *     description: |
+ *       '''dart
+ *       Uri.parse('$baseUrl/diaries/deleteDiary?uid=$uid&diaryDate=$diaryDate'),
+ *       '''
  *     tags: [Diaries]
  *     parameters:
  *       - in: path
@@ -584,7 +588,7 @@ router.put('/:diaryId', async (req, res) => {
  *       500:
  *         description: 서버 에러 메세지
  */
-router.delete('/:diaryId', async (req, res) => {
+router.delete('/deleteDiary', async (req, res) => {
   try {
     const result = await Diary.deleteMany({ 
       uid : req.query.uid,
