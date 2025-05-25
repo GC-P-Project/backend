@@ -9,18 +9,20 @@ const { updateUserTraits } = require('../utils/gptClient');
 exports.startIntervention = async (req, res) => {
   try {
     const { uid, text } = req.body;
+    console.log("UID: " + uid + ", text: " + text);
     if (!uid || !text) return res.status(400).json({ error: 'uid와 text가 필요합니다.' });
     
-    
+
     const messages = [
       { role: 'system', content: initialSystemPrompt },
       { role: 'user', content: text },
     ];
-    
+
+
     const gptReply = await sendToGPT(messages);
-    
 
     // 트리거 키워드 감지 (간단한 예시)
+    const triggerKeywords = ['무기력', '우울', '짜증', '불안'];
     const detected = triggerKeywords.find(word => text.includes(word));
 
     const log = await InterventionLog.create({
