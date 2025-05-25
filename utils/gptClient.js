@@ -159,7 +159,7 @@ async function startInterventionSession(triggeredText, trigger, user, diaryObj) 
     { role: "system", content: initialSystemPrompt },
     { role: "user", content: triggeredText }
   ];
-
+  
   const intervention = new InterventionLog({
     uid: user.uid,
     diaryId: diaryObj.diaryId,
@@ -171,11 +171,11 @@ async function startInterventionSession(triggeredText, trigger, user, diaryObj) 
     trigger,
     triggeredText
   });
-
+  temp = triggeredText;
   const gptReply = await sendToGPT(messages);
   console.log(`GPT: ${gptReply}`);
   intervention.conversation.push({ speaker: "gpt", message: gptReply });
-
+  
   async function conversationLoop() {
     rl.question('You: ', async (userInput) => {
       if (userInput.toLowerCase() === 'exit') {
@@ -185,8 +185,9 @@ async function startInterventionSession(triggeredText, trigger, user, diaryObj) 
         console.log(' 개입 종료. 다시 일기를 작성하세요.');
         return;
       } else {
-        messages.push({ role: "user", content: userInput });
-        intervention.conversation.push({ speaker: "user", message: userInput });
+        temp = temp + userInput;
+        messages.push({ role: "user", content: temp });
+        intervention.conversation.push({ speaker: "user", message: temp });
         const gptReply = await sendToGPT(messages);
         console.log(`GPT: ${gptReply}`);
         intervention.conversation.push({ speaker: "gpt", message: gptReply });
