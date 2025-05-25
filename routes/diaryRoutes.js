@@ -547,7 +547,7 @@ router.put('/:diaryId', async (req, res) => {
       return res.status(400).json({ error: 'newContent is required' });
     }
 
-    diary.contents.push(newContent);
+    diary.contents = newContent;
     await diary.save();
 
     res.status(200).json({
@@ -581,10 +581,17 @@ router.put('/:diaryId', async (req, res) => {
  */
 router.delete('/:diaryId', async (req, res) => {
   try {
-    const diary = await Diary.findOneAndDelete({ diaryId: req.params.diaryId });
-    if (!diary) return res.status(404).json({ error: 'Diary not found' });
+    const result = await Diary.deleteMany({ 
+      uid : req.query.uid,
+      diaryDate : req.query.diaryDate
+    });
 
-    res.json({ message: 'Diary deleted successfully' });
+    if (result.deletedCount > 0){
+      res.status(200).json({message: 'Diary Deleted'});
+    }
+    else{
+      res.status(404).json({message: "Diary not exist!"});
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
