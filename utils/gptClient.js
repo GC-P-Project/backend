@@ -171,9 +171,9 @@ async function startInterventionSession(triggeredText, trigger, user, diaryObj) 
     trigger,
     triggeredText
   });
-  temp = triggeredText;
+  
   const gptReply = await sendToGPT(messages);
-  console.log(`GPT: ${gptReply}`);
+  messages.push({ role: "assistant", message: gptReply}); //gpt와 대화를 기억하기 위해 보내는 messages에 gpt의 답변 넣기
   intervention.conversation.push({ speaker: "gpt", message: gptReply });
   
   async function conversationLoop() {
@@ -185,13 +185,13 @@ async function startInterventionSession(triggeredText, trigger, user, diaryObj) 
         console.log(' 개입 종료. 다시 일기를 작성하세요.');
         return;
       } else {
-        temp = temp + userInput;
-        console.log("temp: " + temp);
-        messages.push({ role: "user", content: temp });
-        console.log("MESSAGE: " + messages);
-        intervention.conversation.push({ speaker: "user", message: temp });
+        messages.push({ role: "user", content: userInput });
+        intervention.conversation.push({ speaker: "user", message: userInput });
+
         const gptReply = await sendToGPT(messages);
         console.log(`GPT: ${gptReply}`);
+        
+        messages.push({ role: "assistant", message: gptReply});
         intervention.conversation.push({ speaker: "gpt", message: gptReply });
         await conversationLoop();
       }
