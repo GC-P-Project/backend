@@ -330,11 +330,11 @@ router.get('/AlldiaryId', async(req, res) =>{
  *        예시: ["2025-05-01", "2025-05-02", ...]
  *     
  *        ** 코드 호출 예시 **
- *        '''dart
+ *        ```dart
  *        final response = await http.get(
  *           Uri.parse('$baseUrl/diaries/AlldiaryDates?uid=$uid'),
  *        );
- *        '''
+ *        ```
  * 
  *     tags: [Diaries]
  *     parameters:

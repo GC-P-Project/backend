@@ -176,6 +176,10 @@ router.delete('/:diaryId', async (req, res) => {
  *     responses:
  *       200:
  *         description: 개입 여부 및 첫 GPT 응답 반환
+ *       400:
+ *         description: uid / text 누락
+ *       500:
+ *         description: 서버 에러
  */
 router.post('/start', startIntervention);
 
@@ -199,6 +203,10 @@ router.post('/start', startIntervention);
  *     responses:
  *       200:
  *         description: GPT 응답 반환
+ *       400:
+ *         description: uid / userInput 누락
+ *       500:
+ *         description: 서버 에러
  */
 router.post('/continue', continueIntervention);
 
@@ -237,11 +245,11 @@ router.post('/continue', continueIntervention);
  *     responses:
  *       200:
  *         description: 종료 성공
+ *       400:
+ *         description: 필수 항목 누락
+ *       500:
+ *         description: 서버 에러 
  */
 router.post('/exit', exitIntervention);
-
-
-
-// router.put('/:diaryid', updateConversation);
 
 module.exports = router;

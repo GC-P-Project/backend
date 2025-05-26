@@ -9,15 +9,15 @@ const { updateUserTraits } = require('../utils/gptClient');
 exports.startIntervention = async (req, res) => {
   try {
     const { uid, text } = req.body;
-    console.log("UID: " + uid + ", text: " + text);
-    if (!uid || !text) return res.status(400).json({ error: 'uid와 text가 필요합니다.' });
-    
+    if (!uid || !text){
+      console.log("[startIntervntion 400 ERROR]");
+      return res.status(400).json({ error: 'uid와 text가 필요합니다.' });
+    }
 
     const messages = [
       { role: 'system', content: initialSystemPrompt },
       { role: 'user', content: text },
     ];
-
 
     const gptReply = await sendToGPT(messages);
 
@@ -39,7 +39,7 @@ exports.startIntervention = async (req, res) => {
       triggeredText: text
     });
 
-    res.json({ intervene: true, gptReply });
+    res.status(200).json({ intervene: true, gptReply });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -99,8 +99,7 @@ exports.exitIntervention = async (req, res) => {
 
     // 사용자 trait 갱신
     await updateUserTraits(uid, contents, conversation);
-
-    res.json({ message: '개입 종료 및 저장 완료', log });
+    res.status(200).json({ message: '개입 종료 및 저장 완료', log });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
