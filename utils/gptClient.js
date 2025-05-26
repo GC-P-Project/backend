@@ -190,7 +190,7 @@ async function startInterventionSession(triggeredText, trigger, user, diaryObj) 
 
         const gptReply = await sendToGPT(messages);
         console.log(`GPT: ${gptReply}`);
-        
+
         messages.push({ role: "assistant", message: gptReply});
         intervention.conversation.push({ speaker: "gpt", message: gptReply });
         await conversationLoop();

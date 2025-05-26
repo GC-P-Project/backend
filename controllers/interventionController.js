@@ -3,7 +3,7 @@ const InterventionLog = require('../models/InterventionLog');
 const { v4: uuidv4 } = require('uuid');
 const { initialSystemPrompt, sendToGPT } = require('../utils/gptClient');
 const User = require('../models/UserModel');
-const { updateUserTraits } = require('../utils/gptClient');
+const { updateUserTraits, initialSystemPrompt } = require('../utils/gptClient');
 
 // POST /interventions/start
 exports.startIntervention = async (req, res) => {
@@ -50,9 +50,13 @@ exports.continueIntervention = async (req, res) => {
   try {
     const { uid, userInput } = req.body;
     if (!uid || !userInput) return res.status(400).json({ error: 'uid와 userInput이 필요합니다.' });
-
-    const userTurn = { role: 'user', content: userInput };
-    const gptReply = await sendToGPT([userTurn]);
+    let messages = [
+      { role: 'system', content: initialSystemPrompt },
+      userInput
+    ];
+    // const userTurn = { role: 'user', content: userInput };
+    // const gptReply = await sendToGPT([userTurn]);
+    const gptReply = await sendToGPT(messages);
 
     res.json({ gptReply });
   } catch (err) {

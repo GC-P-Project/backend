@@ -107,6 +107,8 @@ router.get('/:diaryId', async (req, res) => {
  *         description: 수정 성공
  *       404:
  *         description: 찾을 수 없음
+ *       500:
+ *         description: 서버 오류
  */
 router.put('/:diaryId', async (req, res) => {
   try {
@@ -120,9 +122,9 @@ router.put('/:diaryId', async (req, res) => {
 
     if (!updated) return res.status(404).json({ error: 'Intervention log not found' });
 
-    res.json(updated);
+    res.status(200).json(updated);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -148,7 +150,7 @@ router.delete('/:diaryId', async (req, res) => {
   try {
     const log = await InterventionLog.findOneAndDelete({ diaryId: req.params.diaryId });
     if (!log) return res.status(404).json({ error: 'Intervention log not found' });
-    res.json({ message: 'Intervention log deleted successfully' });
+    res.status(200).json({ message: 'Intervention log deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
