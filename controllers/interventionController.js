@@ -3,7 +3,7 @@ const InterventionLog = require('../models/InterventionLog');
 const { v4: uuidv4 } = require('uuid');
 const { initialSystemPrompt, sendToGPT } = require('../utils/gptClient');
 const User = require('../models/UserModel');
-const { updateUserTraits, initialSystemPrompt } = require('../utils/gptClient');
+const { updateUserTraits } = require('../utils/gptClient');
 
 // POST /interventions/start
 exports.startIntervention = async (req, res) => {
