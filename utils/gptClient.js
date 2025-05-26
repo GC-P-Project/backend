@@ -97,10 +97,10 @@ async function getEmotionIntensity(text, traits) {
 }
 
 async function sendToGPT(messages) {
-  console.log("SendToGPT CALL: " + messages);
+  console.log("SendToGPT Messages: " + JSON.stringify(messages));
   const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
-    messages
+    messages : messages
   }, {
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
