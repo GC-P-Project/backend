@@ -78,7 +78,7 @@ router.get('/:diaryId', async (req, res) => {
   try {
     const log = await InterventionLog.findOne({ diaryId: req.params.diaryId });
     if (!log) return res.status(404).json({ error: 'Intervention log not found' });
-    res.json(log);
+    res.status(200).json(log.conversation);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
