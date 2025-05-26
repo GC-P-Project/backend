@@ -49,7 +49,6 @@ exports.startIntervention = async (req, res) => {
 exports.continueIntervention = async (req, res) => {
   try {
     const { uid, userInput } = req.body;
-    console.log("UID: "+uid + ",USERINPUT: " + JSON.stringify(userInput));
     if (!uid || !userInput){
       return res.status(400).json({ error: 'uid와 userInput이 필요합니다.' });
     } 
@@ -57,9 +56,7 @@ exports.continueIntervention = async (req, res) => {
       { role: 'system', content: initialSystemPrompt },
       ...userInput
     ];
-    console.log("export continue intervensiton message: " + JSON.stringify(messages));
-    // const userTurn = { role: 'user', content: userInput };
-    // const gptReply = await sendToGPT([userTurn]);
+   
     const gptReply = await sendToGPT(messages);
 
     res.status(200).json({ gptReply });
