@@ -54,6 +54,7 @@ exports.continueIntervention = async (req, res) => {
       { role: 'system', content: initialSystemPrompt },
       userInput
     ];
+    console.log("export continue intervensiton message: " + messages);
     // const userTurn = { role: 'user', content: userInput };
     // const gptReply = await sendToGPT([userTurn]);
     const gptReply = await sendToGPT(messages);
