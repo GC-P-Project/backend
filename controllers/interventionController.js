@@ -49,15 +49,15 @@ exports.startIntervention = async (req, res) => {
 exports.continueIntervention = async (req, res) => {
   try {
     const { uid, userInput } = req.body;
-    console.log("UID: "+uid + ",USERINPUT: " + userInput);
+    console.log("UID: "+uid + ",USERINPUT: " + JSON.stringify(messages));
     if (!uid || !userInput){
       return res.status(400).json({ error: 'uid와 userInput이 필요합니다.' });
     } 
     let messages = [
       { role: 'system', content: initialSystemPrompt },
-      userInput
+      JSON.stringify(messages)
     ];
-    console.log("export continue intervensiton message: " + messages);
+    console.log("export continue intervensiton message: " + JSON.stringify(messages));
     // const userTurn = { role: 'user', content: userInput };
     // const gptReply = await sendToGPT([userTurn]);
     const gptReply = await sendToGPT(messages);
