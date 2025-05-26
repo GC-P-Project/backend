@@ -49,7 +49,10 @@ exports.startIntervention = async (req, res) => {
 exports.continueIntervention = async (req, res) => {
   try {
     const { uid, userInput } = req.body;
-    if (!uid || !userInput) return res.status(400).json({ error: 'uid와 userInput이 필요합니다.' });
+    console.log("UID: "+uid + ",USERINPUT: " + userInput);
+    if (!uid || !userInput){
+      return res.status(400).json({ error: 'uid와 userInput이 필요합니다.' });
+    } 
     let messages = [
       { role: 'system', content: initialSystemPrompt },
       userInput
