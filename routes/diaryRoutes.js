@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
       console.log("감정 저장 분석 결과: emotion"+emotion);
     }
     catch(e){
-      res.status(501).json({error:"Fail anlysis emotion"});
+      return res.status(501).json({error:"Fail anlysis emotion"});
     }
     const diary = new Diary({
       uid,
