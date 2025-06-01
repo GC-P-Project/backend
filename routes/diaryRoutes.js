@@ -561,6 +561,7 @@ router.put('/:diaryId', async (req, res) => {
 
     diary.contents = newContent;
     try{// 감정 분석하기
+      console.log("diary 정보는 다음과 같습니다: "+ diary);
       const user = await User.findOne(diary.uid);
       if(!user) return res.status(404).json({error: "유저 정보 찾기 불가"});
       console.log("유저 정보는 다음과 같습니다." + user.traits);
@@ -570,6 +571,7 @@ router.put('/:diaryId', async (req, res) => {
       console.log("감정 저장 분석 결과: emotion"+emotion);
     }
     catch(e){
+      console.log("Try-Catch 오류 : " + e);
       return res.status(501).json({error:"Fail anlysis emotion"});
     }
     diary.emotion = emotion.emotions;
