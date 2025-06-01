@@ -562,12 +562,14 @@ router.put('/:diaryId', async (req, res) => {
     diary.contents = newContent;
     try{// 감정 분석하기
       const user = await User.findOne(diary.uid);
-      const responseContent = await emotionAnalysis(user.traits, contents);
+      if(!user) return res.status(404).json({error: "유저 정보 찾기 불가"});
+      console.log("유저 정보는 다음과 같습니다." + user.traits);
+      const responseContent = await emotionAnalysis(user.traits, newContent);
       if(!responseContent) return res.status(404).json({error:"Fail get emotion to context"});
       emotion = JSON.parse(responseContent);
       console.log("감정 저장 분석 결과: emotion"+emotion);
     }
-    catch(e){
+    catch(e){wj
       return res.status(501).json({error:"Fail anlysis emotion"});
     }
     diary.emotion = emotion.emotions;
