@@ -569,7 +569,7 @@ router.put('/:diaryId', async (req, res) => {
       emotion = JSON.parse(responseContent);
       console.log("감정 저장 분석 결과: emotion"+emotion);
     }
-    catch(e){wj
+    catch(e){
       return res.status(501).json({error:"Fail anlysis emotion"});
     }
     diary.emotion = emotion.emotions;
