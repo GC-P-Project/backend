@@ -97,6 +97,7 @@ async function getEmotionIntensity(text, traits) {
 }
 
 async function emotionAnalysis(traits, text){
+  console.log("감정 분석 시작하기 위한 데이터: "+ traits + "\n이건 문장: " + text);
   const emotionAnalysisPrompt = (traits, text) =>
     `너는 심리학 박사 학위를 가진 감정 분석 전문가야. 20년간 일기 분석을 통한 감정 연구를 수행했어.
 
