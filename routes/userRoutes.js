@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const User = require('../models/UserModel'); // User 모델 불러오기
+const userController = require('../controllers/userController');
 
 /**
  * @swagger
@@ -219,7 +220,7 @@ router.get('/:getUserUID', async(req,res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             type: object 
  *     responses:
  *       200:
  *         description: 사용자 정보 수정 성공
@@ -268,6 +269,69 @@ router.delete('/:uid', async (req, res) => {
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+ /**
+ * @swagger
+ * /users/{uid}/traits:
+ *   get:
+ *     summary: 사용자 성격 traits만 조회
+ *     description: 특정 사용자의 성격 분석 결과(traits)만 반환합니다.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 사용자의 UID
+ *     responses:
+ *       200:
+ *         description: 사용자 traits 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 honestyHumility:
+ *                   type: number
+ *                   example: 0.52
+ *                 emotionalStability:
+ *                   type: number
+ *                   example: 0.31
+ *                 extraversion:
+ *                   type: number
+ *                   example: 0.45
+ *                 conscientiousness:
+ *                   type: number
+ *                   example: 0.62
+ *                 openness:
+ *                   type: number
+ *                   example: 0.48
+ *                 riskPropensity:
+ *                   type: number
+ *                   example: 0.39
+ *                 needForCognition:
+ *                   type: number
+ *                   example: 0.54
+ *                 futureTimePerspective:
+ *                   type: number
+ *                   example: 0.6
+ *       404:
+ *         description: 사용자를 찾을 수 없음
+ *       500:
+ *         description: 서버 오류
+ */
+
+router.get('/:uid/traits', async (req, res) => {
+  try {
+    const user = await User.findOne({ uid: req.params.uid });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json(user.traits);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
