@@ -162,7 +162,7 @@ async function emotionAnalysis(traits, text){
       {"emotions": {"fear": 0.00, "surprise": 0.00, "anger": 0.00, "sadness": 0.00, "neutral": 0.00, "happiness": 0.00, "disgust": 0.00}}`;
   const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
-    messages: [{ role: "system", content: generatePersonalizedPrompt(traits, text) }]
+    messages: [{ role: "system", content: emotionAnalysisPrompt(traits, text) }]
   }, {
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
