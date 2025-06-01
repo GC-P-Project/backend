@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
     // 일기 저장
     console.log("uid: " +uid +"\ndiaryID: " + diaryId + "\ndiaryDate: " + diaryDate + "\ncontents: +" +contents);
     try{// 감정 분석하기
-      const responseContent = emotionAnalysis(user.traits, contents);
+      const responseContent = await emotionAnalysis(user.traits, contents);
       if(!emotion) return res.status(404).json({error:"Fail get emotion to context"});
       emotion = JSON.parse(responseContent);
       console.log("감정 저장 분석 결과: emotion"+emotion);
@@ -562,7 +562,7 @@ router.put('/:diaryId', async (req, res) => {
     diary.contents = newContent;
     try{// 감정 분석하기
       const user = User.findOne(diary.uid);
-      const responseContent = emotionAnalysis(user.traits, contents);
+      const responseContent = await emotionAnalysis(user.traits, contents);
       if(!emotion) return res.status(404).json({error:"Fail get emotion to context"});
       emotion = JSON.parse(responseContent);
       console.log("감정 저장 분석 결과: emotion"+emotion);
@@ -570,7 +570,7 @@ router.put('/:diaryId', async (req, res) => {
     catch(e){
       res.status(501).json({error:"Fail anlysis emotion"});
     }
-    
+    diary.emotion = emotion.emotions;
     await diary.save();
 
     res.status(200).json({
