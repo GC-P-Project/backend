@@ -169,6 +169,7 @@ async function emotionAnalysis(traits, text){
       'Content-Type': 'application/json'
     }
   });
+  console.log("서버 분석 결과 리스폰: "+response.data.choices[0].message.content);
   return response.data.choices[0].message.content;
 }
 async function sendToGPT(messages) {

@@ -568,7 +568,7 @@ router.put('/:diaryId', async (req, res) => {
       console.log("감정 저장 분석 결과: emotion"+emotion);
     }
     catch(e){
-      res.status(501).json({error:"Fail anlysis emotion"});
+       res.status(501).json({error:"Fail anlysis emotion"});
     }
     diary.emotion = emotion.emotions;
     await diary.save();
