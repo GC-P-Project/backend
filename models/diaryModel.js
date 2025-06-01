@@ -27,9 +27,14 @@ const diarySchema = new mongoose.Schema({
     default: [],
   },
   emotion: {
-    type: String,
-    defualt: "중립",
-  }
+    fear: { type: Number, default: 0.5 },
+    surprise: { type: Number, default: 0.5 },
+    anger: { type: Number, default: 0.5 },
+    sadness: { type: Number, default: 0.5 },
+    netural: { type: Number, default: 0.5 },
+    happyness: { type: Number, default: 0.5 },
+    disgust: { type: Number, default: 0.5 }
+  },
 });
 
 module.exports = mongoose.models.Diary || mongoose.model('Diary', diarySchema);

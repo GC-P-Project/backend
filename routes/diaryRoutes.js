@@ -3,7 +3,7 @@ const router = express.Router();
 const Diary = require('../models/diaryModel');
 const User = require('../models/UserModel');
 const InterventionLog = require('../models/InterventionLog');
-const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits} = require('../utils/gptClient');
+const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits, emotionAnalysis} = require('../utils/gptClient');
 /**
  * @swagger
  * tags:
@@ -64,12 +64,21 @@ router.post('/', async (req, res) => {
 
     // 일기 저장
     console.log("uid: " +uid +"\ndiaryID: " + diaryId + "\ndiaryDate: " + diaryDate + "\ncontents: +" +contents);
+    try{// 감정 분석하기
+      const responseContent = emotionAnalysis(user.traits, contents);
+      if(!emotion) return res.status(404).json({error:"Fail get emotion to context"});
+      emotion = JSON.parse(responseContent);
+      console.log("감정 저장 분석 결과: emotion"+emotion);
+    }
+    catch(e){
+      res.status(501).json({error:"Fail anlysis emotion"});
+    }
     const diary = new Diary({
       uid,
       diaryId,
       diaryDate,
       contents,
-      emotion : "중립"
+      emotion: emotion.emotions
     });
     await diary.save();
 
@@ -509,6 +518,7 @@ router.get('/diaryContent', async (req, res) => {
   }
 });
 
+
 /** 일기 수정 (새로운 내용 추가) 
  * @swagger
  * /diaries/{diaryId}:
@@ -550,6 +560,17 @@ router.put('/:diaryId', async (req, res) => {
     }
 
     diary.contents = newContent;
+    try{// 감정 분석하기
+      const user = User.findOne(diary.uid);
+      const responseContent = emotionAnalysis(user.traits, contents);
+      if(!emotion) return res.status(404).json({error:"Fail get emotion to context"});
+      emotion = JSON.parse(responseContent);
+      console.log("감정 저장 분석 결과: emotion"+emotion);
+    }
+    catch(e){
+      res.status(501).json({error:"Fail anlysis emotion"});
+    }
+    
     await diary.save();
 
     res.status(200).json({

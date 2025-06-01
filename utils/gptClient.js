@@ -96,6 +96,81 @@ async function getEmotionIntensity(text, traits) {
   return isNaN(score) ? 0.0 : score;
 }
 
+async function emotionAnalysis(traits, text){
+  const emotionAnalysisPrompt = (traits, text) =>
+    `너는 심리학 박사 학위를 가진 감정 분석 전문가야. 20년간 일기 분석을 통한 감정 연구를 수행했어.
+
+    아래 사용자의 성향(traits)을 참고해서, 입력된 일기가 7가지 감정 [공포, 놀람, 분노, 슬픔, 중립, 행복, 혐오] 각각을 얼마나 표현하고 있는지 정밀하게 평가해줘.
+    모든 감정 확률의 합은 반드시 정확히 1.00이 되어야 해.
+    성향은 0~1 사이 수치야.
+
+    [사용자 성향]
+    정직/겸손: ${traits.honestyHumility}
+    정서적 안정성: ${traits.emotionalStability}
+    외향성: ${traits.extraversion}
+    성실성: ${traits.conscientiousness}
+    개방성: ${traits.openness}
+    위험 감수 성향: ${traits.riskPropensity}
+    인지욕구: ${traits.needForCognition}
+    미래지향성: ${traits.futureTimePerspective}
+
+    [성향별 감정 조정 규칙]
+    1. 정서적 안정성 (emotionalStability)
+      - 0.0~0.3: 부정 감정 ×1.5배 증폭
+      - 0.3~0.5: 부정 감정 ×1.2배 증폭
+      - 0.7~1.0: 부정 감정 ×0.8배 감소
+
+    2. 외향성 (extraversion)
+      - 0.7~1.0: 모든 감정 표현 강화 (중립 제외)
+      - 0.0~0.3: 감정 표현 억제, 중립 증가
+
+    3. 정직/겸손 (honestyHumility)
+      - 0.7~1.0: 감정의 순수성 증가 (복합 감정 감소)
+      - 0.0~0.3: 방어적 표현으로 진짜 감정 숨김
+
+    4. 개방성 (openness)
+      - 0.7~1.0: 2개 이상 감정 동시 표현 가능
+      - 0.0~0.3: 단순 감정만 표현
+
+    5. 위험 감수 성향 (riskPropensity)
+      - 0.7~1.0: 공포 ×0.5배 감소
+      - 0.0~0.3: 공포 ×1.3배 증가
+
+    6. 인지욕구 (needForCognition)
+      - 0.7~1.0: 중립 +0.1~0.2 증가
+      - 감정보다 사실 중심 서술 시 중립 강화
+
+    7. 미래지향성 (futureTimePerspective)
+      - 0.7~1.0: 희망적 내용→행복 증가, 걱정→공포 증가
+      - 0.0~0.3: 현재 감정에만 집중
+
+    [분석 단계]
+    1단계: 일기의 핵심 감정 단어와 문맥 파악
+    2단계: 기본 감정 확률 계산
+    3단계: 사용자 성향에 따른 가중치 적용
+    4단계: 최종 확률 정규화 (합계 = 1.00)
+
+    [중요 지시사항]
+    - 미묘한 감정 신호도 놓치지 마세요
+    - 한국어 특유의 간접 표현을 고려하세요
+    - 이모티콘이나 구어체도 감정 단서로 활용하세요
+    - 문장 길이와 구조도 감정 강도의 지표입니다
+
+    일기: "${text}"
+
+    → 반드시 JSON 형식으로만 답변. 설명이나 주석 절대 금지:
+      {"emotions": {"fear": 0.00, "surprise": 0.00, "anger": 0.00, "sadness": 0.00, "neutral": 0.00, "happiness": 0.00, "disgust": 0.00}}`;
+  const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+    model: 'gpt-3.5-turbo',
+    messages: [{ role: "system", content: generatePersonalizedPrompt(traits, text) }]
+  }, {
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data.choices[0].message.content;
+}
 async function sendToGPT(messages) {
   console.log("CALL sendToGPT | messages: " + JSON.stringify(messages));
   const response = await axios.post('https://api.openai.com/v1/chat/completions', {
@@ -254,5 +329,6 @@ module.exports = {
   getEmotionIntensity,
   sendToGPT,
   updateUserTraits,
-  initialSystemPrompt
+  initialSystemPrompt,
+  emotionAnalysis
 };
