@@ -2,7 +2,6 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const User = require('../models/UserModel'); // User 모델 불러오기
-const userController = require('../controllers/userController');
 
 /**
  * @swagger
