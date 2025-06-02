@@ -308,7 +308,7 @@ async function encodeUserTraits(traits){
     `;
     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
-    messages: [{ role: "system", content: systemPrompt },
+    messages: [{ role: "system", content: encodePrompt },
     { role: "user", content: userPrompt }]
   },  {
     headers: {
