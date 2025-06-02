@@ -298,7 +298,7 @@ async function encodeUserTraits(traits){
     ---
 
     아래 형식으로 입력값을 받아, 종합적으로 1문장 평가만 출력하세요.
-
+    오류가 발생하면 왜 오류가 나는지(예: traits의 특정 변수가 없습니다.) 반환하세요.
     [입력]
     honestyHumility: ${traits.honestyHumility}
     emotionalStability: ${traits.emotionalStability}
