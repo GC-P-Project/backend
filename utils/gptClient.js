@@ -212,23 +212,55 @@ traits: honestyHumility, emotionalStability, extraversion, conscientiousness, op
   "futureTimePerspective": 0.60
 }`;
 
-  const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-    model: 'gpt-3.5-turbo',
-    messages: [{ role: "system", content: prompt }]
-  }, {
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  const content = response.data.choices[0].message.content;
   try {
-    const traits = JSON.parse(content);
-    await User.findOneAndUpdate({ uid }, { traits });
-    console.log(" 사용자 trait 정보 업데이트 완료");
+    //  GPT 호출
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: "system", content: prompt }]
+    }, {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const content = response.data.choices[0].message.content;
+    const newTraits = JSON.parse(content); //  GPT가 반환한 새 trait
+
+    //  사용자 조회
+    const user = await User.findOne({ uid });
+    if (!user) {
+      console.warn(` 사용자 ${uid}를 찾을 수 없습니다.`);
+      return;
+    }
+
+    const currentTraits = user.traits || {};
+    console.log(" 기존 traits:", currentTraits);
+    console.log(" GPT 새 traits:", newTraits);
+
+    //  가중 평균 계산
+    const updatedTraits = {};
+    const weightOld = 0.75;
+    const weightNew = 0.25;
+
+    for (const key of Object.keys(newTraits)) {
+      const oldVal = typeof currentTraits[key] === 'number' ? currentTraits[key] : 0.5;
+      const newVal = newTraits[key];
+      updatedTraits[key] = parseFloat((oldVal * weightOld + newVal * weightNew).toFixed(4));
+    }
+
+    console.log(" 업데이트된 traits:", updatedTraits);
+
+    // DB 업데이트
+    await User.findOneAndUpdate({ uid }, { traits: updatedTraits });
+    console.log(` 사용자 ${uid} trait 정보 가중 업데이트 완료`);
+
+    //  최종 검증
+    const updatedUser = await User.findOne({ uid });
+    console.log(" DB 최종 저장된 traits:", updatedUser.traits);
+
   } catch (e) {
-    console.error(" trait JSON 파싱 실패:", content);
+    console.error(" trait 업데이트 실패:", e.message);
   }
 }
 
