@@ -376,7 +376,7 @@ router.get('/:uid/traits/summary', async (req, res) => {
   }
 });
 
-router.get('/getTotalTraits', async (req, res) => {
+router.get('/:traits/getTotalTraits', async (req, res) => {
   try{
     const traits = req.params.traits;
     console.log("req.param.traits: " + req.params.traits);
