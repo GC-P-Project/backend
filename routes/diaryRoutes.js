@@ -603,7 +603,7 @@ router.put('/:diaryId', async (req, res) => {
 
     diary.emotion = emotion;
     await diary.save();
-
+    console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
     res.status(200).json({
       message: 'Diary updated successfully',
       lastestContent: newContent,
