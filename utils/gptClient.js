@@ -425,6 +425,78 @@ async function startDiaryWriting() {
   });
 }
 
+const axios = require('axios');
+const User = require('../models/UserModel');
+
+async function getTraitSummary(uid) {
+  try {
+    const user = await User.findOne({ uid });
+    if (!user) throw new Error("User not found");
+
+    const traits = user.traits;
+    if (!traits) throw new Error("No traits data found");
+
+    const traitNamesKo = {
+      honestyHumility: "정직/겸손",
+      emotionalStability: "정서적 안정성",
+      extraversion: "외향성",
+      conscientiousness: "성실성",
+      openness: "개방성",
+      riskPropensity: "위험 감수 성향",
+      needForCognition: "인지욕구",
+      futureTimePerspective: "미래지향성",
+    };
+
+    const traitLines = Object.entries(traits)
+      .map(([key, value]) => `- ${traitNamesKo[key] || key} (${key}): ${value.toFixed(2)}`)
+      .join("\n");
+
+    const prompt = `
+너는 성격 분석 전문가야.
+
+아래는 사용자의 성격 특성 점수들이야. 각 항목은 0~1 사이 수치로 표현돼.
+이 특성들을 바탕으로 사용자의 성향을 한 문단으로 요약해줘.
+
+- 반드시 두문장에서 세문장으로 요약할 것
+- 각 성향이 어떤 특성을 기반으로 분석되었는지 자연스럽게 설명
+- 이모지 사용 금지
+- 너무 딱딱하거나 기계적으로 말하지 말고, 사람처럼 자연스럽고 따뜻한 어조 유지
+- 예시를 들어주는 형식도 가능 (예: "새로운 것을 시도할 때 주저하지 않는 편입니다")
+- 결과는 반드시 JSON 객체로만 응답해. 예시:
+{ "summary": "당신은 신중하면서도 도전적인 성격입니다. 감정적으로 안정적이며 새로운 시도에도 거부감이 적습니다." }
+
+traits:
+${traitLines}
+    `.trim();
+
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: "system", content: prompt }
+        ]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const content = response.data.choices[0].message.content.trim();
+
+    // GPT 응답이 JSON 문자열인지 확인하고 파싱
+    const parsed = JSON.parse(content);
+    return { summary: parsed.summary };
+  } catch (err) {
+    console.error("getTraitSummary 오류:", err.message);
+    return { summary: "성격 요약을 생성하는 데 실패했습니다." };
+  }
+}
+
+
 const initialSystemPrompt = `
 너는 감정 기반 일기 앱에서 사용자의 이야기를 들어주는 친구 같은 존재야.
 
@@ -446,5 +518,6 @@ module.exports = {
   sendToGPT,
   updateUserTraits,
   initialSystemPrompt,
-  emotionAnalysis
+  emotionAnalysis,
+  getTraitSummary
 };

@@ -2,6 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const User = require('../models/UserModel'); // User 모델 불러오기
+const { getTraitSummary } = require('../utils/gptClient');
+
 
 /**
  * @swagger
@@ -331,6 +333,47 @@ router.get('/:uid/traits', async (req, res) => {
     res.json(user.traits);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /users/{uid}/traits/summary:
+ *   get:
+ *     summary: 사용자의 성격 trait 요약 문장 생성
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 사용자 UID
+ *     responses:
+ *       200:
+ *         description: 사용자의 trait 기반 요약 문장을 반환합니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 summary:
+ *                   type: string
+ *                   example: "당신은 신중하면서도 새로운 시도에 열려 있는 성격입니다. 감정적으로 안정되어 있으며 책임감을 갖고 행동하려는 경향이 있습니다."
+ *       404:
+ *         description: 사용자를 찾을 수 없거나 trait 정보가 없음
+ *       500:
+ *         description: 서버 내부 오류
+ */
+router.get('/:uid/traits/summary', async (req, res) => {
+  try {
+    const uid = req.params.uid;
+    const result = await getTraitSummary(uid);
+
+    res.status(200).json(result); // result는 { summary: "...문장..." }
+  } catch (err) {
+    console.error("Trait summary router error:", err.message);
+    res.status(500).json({ error: '서버 오류로 trait summary를 생성하지 못했습니다.' });
   }
 });
 
