@@ -31,8 +31,8 @@ const diarySchema = new mongoose.Schema({
     surprise: { type: Number, default: 0.5 },
     anger: { type: Number, default: 0.5 },
     sadness: { type: Number, default: 0.5 },
-    netural: { type: Number, default: 0.5 },
-    happyness: { type: Number, default: 0.5 },
+    neutral: { type: Number, default: 0.5 },
+    happiness: { type: Number, default: 0.5 },
     disgust: { type: Number, default: 0.5 }
   },
 });
