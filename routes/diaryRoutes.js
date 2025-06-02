@@ -466,7 +466,7 @@ router.get('/AlldiaryDates', async(req,res) =>{
  *               diaryDate: "2025-05-21"
  *               contents: ["오늘은 좋은 하루였다.", "친구들과 즐거운 시간을 보냈다."]
  *               createdAt: "2025-05-21T15:30:45.123Z"
- *               emotion: {"emotions": {'fear':0.05, 'surprise':0.1, 'anger':0.1, 'sadness':0.15, 'disgust':0.05, 'neutral':0.2. 'happiness':0.3}}
+ *               emotion: {"emotions": {'fear':0.05, 'surprise':0.1, 'anger':0.1, 'sadness':0.15, 'disgust':0.05, 'neutral':0.2, 'happiness':0.3}}
  *       400:
  *         description: 잘못된 요청 - uid 또는 diaryDate 누락
  *         content:
