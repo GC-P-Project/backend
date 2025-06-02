@@ -654,7 +654,7 @@ router.delete('/deleteDiary', async (req, res) => {
       uid : req.query.uid,
       diaryDate : req.query.diaryDate
     });
-    if (result.deletedCount > 0 && invetionResult.deletedCount > 0){
+    if (invetionResult.deletedCount > 0 || result.deletedCount > 0){
       res.status(200).json({message: 'Diary Deleted'});
     }
     else{
