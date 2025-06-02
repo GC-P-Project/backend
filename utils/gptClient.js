@@ -265,7 +265,7 @@ async function sendToGPT(messages) {
 
 async function encodeUserTraits(traits){
   console.log("Traits:  " + traits);
-   const encodePrompt = (traits) =>`
+   const encodePrompt =`
     당신은 심리학 전문가로, 아래에 주어진 8가지 성격 지표(각각 0~1 float)와 각 지표에 대한 설명을 참고하여, 
     입력으로 들어온 유저의 성격 특징을 **간결한 한 문장**으로 종합 요약하는 AI입니다.  
     한 줄 평가는 긍정적이면서도, 입력값의 높고 낮음을 반영해 특징적으로 작성합니다.  
@@ -294,12 +294,9 @@ async function encodeUserTraits(traits){
 
     [출력 예시]
     당신은 정직하고 침착한 성향이 두드러지며, 외향성과 개방성이 높아 새로운 도전에 적극적으로 임하는 타입입니다.
-    
-    ---
+    `;
 
-    아래 형식으로 입력값을 받아, 종합적으로 1문장 평가만 출력하세요.
-    오류가 발생하면 왜 오류가 나는지(예: traits의 특정 변수가 없습니다.) 반환하세요.
-    [유저의 입력]
+    const userPrompt =`
     honestyHumility: ${traits.honestyHumility}
     emotionalStability: ${traits.emotionalStability}
     extraversion: ${traits.extraversion}
@@ -308,13 +305,11 @@ async function encodeUserTraits(traits){
     riskPropensity: ${traits.riskPropensity}
     needForCognition: ${traits.needForCognition}
     futureTimePerspective: ${traits.futureTimePerspective}
-
-    [출력결과]
-    (1문장 한줄평, 존댓말)
     `;
     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-3.5-turbo',
-    messages: [{ role: "system", content: encodePrompt(traits) }]
+    messages: [{ role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt }]
   },  {
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
