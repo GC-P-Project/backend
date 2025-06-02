@@ -99,7 +99,7 @@ async function getEmotionIntensity(text, traits) {
 async function emotionAnalysis(traits, text){
   console.log("감정 분석 시작하기 위한 데이터: "+ traits + "\n이건 문장: " + text);
   const emotionAnalysisPrompt = (traits, text) =>
-    `당신은 개인 성격 정보를 바탕으로 일기 텍스트에서 감정을 분석하는 AI입니다. 동일한 상황이라도 성격 특성에 따라 감정 반응이 달라질 수 있으니, 주어진 성격 점수를 꼭 반영해 감정 분포(7개 감정, 확률 합 1, 최댓값은 1개)를 산출하세요. 출력은 반드시 JSON형식이어야 합니다.
+    `당신은 개인 성격 정보를 바탕으로 일기 텍스트에서 감정을 분석하는 AI입니다. 동일한 상황이라도 성격 특성에 따라 감정 반응이 달라질 수 있으니, 주어진 성격 점수를 꼭 반영해 감정 분포(7개 감정, 확률 합 1, 소수점 4자리까지 반환(예: 0.3555))를 산출하세요. 출력은 반드시 JSON형식이어야 합니다.
 
     입력: (1) 유저의 8차원 성격 프로필 (0~1 float), (2) 유저의 일기 텍스트
     출력: 7개 감정의 확률 분포(JSON), 예시 참고
@@ -242,7 +242,6 @@ async function emotionAnalysis(traits, text){
       'Content-Type': 'application/json'
     }
   });
-  console.log("서버 분석 결과 리스폰: "+response.data.choices[0].message.content);
   return response.data.choices[0].message.content;
 }
 async function sendToGPT(messages) {
