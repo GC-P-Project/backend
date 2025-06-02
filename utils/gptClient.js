@@ -103,6 +103,7 @@ async function emotionAnalysis(traits, text){
 
     입력: (1) 유저의 8차원 성격 프로필 (0~1 float), (2) 유저의 일기 텍스트
     출력: 7개 감정의 확률 분포(JSON), 예시 참고
+    반드시 순수 JSON만 출력해 주세요. 주석이나 설명 없이 JSON만 반환하세요.
 
     8차원 성격 프로필 설명:
       1. 정직/겸손 (Honesty-Humility): 진실성과 겸손함의 정도
@@ -242,8 +243,10 @@ async function emotionAnalysis(traits, text){
       'Content-Type': 'application/json'
     }
   });
+  const responseContent = response.data.choices[0].message.content;
   console.log("GPT 응답 원문 확인:", responseContent);
-  return response.data.choices[0].message.content;
+
+  return responseContent;
 }
 async function sendToGPT(messages) {
   console.log("CALL sendToGPT | messages: " + JSON.stringify(messages));
