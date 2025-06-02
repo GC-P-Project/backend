@@ -259,15 +259,26 @@ async function sendToGPT(messages) {
   return response.data.choices[0].message.content;
 }
 
-async function updateUserTraits(uid, diaryContents, fullConversation) {
-  const prompt = `
-너는 성격 분석 전문가야. 아래는 사용자의 일기 내용과 GPT와의 대화 내용이야.
-이걸 바탕으로 아래 8가지 성향(traits)을 0~1 사이 숫자로 다시 예측해줘. JSON 형태로만 반환해.
+
+async function updateUserTraits(uid, diaryContents, fullConversation = []) {
+  try {
+    const diaryText = diaryContents.join("\n");
+
+    // 대화 내용이 있으면 포함, 없으면 생략
+    const hasConversation = fullConversation.length > 0;
+    const conversationText = hasConversation
+      ? `\n대화 내용:\n${fullConversation.map(c => `(${c.speaker}) ${c.message}`).join("\n")}`
+      : "";
+
+    const prompt = `
+너는 성격 분석 전문가야. 아래는 사용자의 일기${hasConversation ? "와 GPT와의 대화" : ""} 내용이야.
+이걸 바탕으로 아래 8가지 성향(traits)을 0~1 사이 숫자로 예측해줘. JSON 형태로만 반환해.
 
 traits: honestyHumility, emotionalStability, extraversion, conscientiousness, openness, riskPropensity, needForCognition, futureTimePerspective
 
-일기 내용: ${diaryContents.join("\n")}
-대화 내용: ${fullConversation.map(c => `(${c.speaker}) ${c.message}`).join("\n")}
+일기 내용:
+${diaryText}
+${conversationText}
 
 답변 형식 예시:
 {
@@ -281,22 +292,24 @@ traits: honestyHumility, emotionalStability, extraversion, conscientiousness, op
   "futureTimePerspective": 0.60
 }`;
 
-  try {
-    //  GPT 호출
-    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: "system", content: prompt }]
-    }, {
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+    // GPT 요청
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: "system", content: prompt }]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
       }
-    });
+    );
 
     const content = response.data.choices[0].message.content;
-    const newTraits = JSON.parse(content); //  GPT가 반환한 새 trait
+    const newTraits = JSON.parse(content);
 
-    //  사용자 조회
     const user = await User.findOne({ uid });
     if (!user) {
       console.warn(` 사용자 ${uid}를 찾을 수 없습니다.`);
@@ -305,9 +318,8 @@ traits: honestyHumility, emotionalStability, extraversion, conscientiousness, op
 
     const currentTraits = user.traits || {};
     console.log(" 기존 traits:", currentTraits);
-    console.log(" GPT 새 traits:", newTraits);
+    console.log(" GPT 예측 traits:", newTraits);
 
-    //  가중 평균 계산
     const updatedTraits = {};
     const weightOld = 0.75;
     const weightNew = 0.25;
@@ -320,11 +332,9 @@ traits: honestyHumility, emotionalStability, extraversion, conscientiousness, op
 
     console.log(" 업데이트된 traits:", updatedTraits);
 
-    // DB 업데이트
     await User.findOneAndUpdate({ uid }, { traits: updatedTraits });
-    console.log(` 사용자 ${uid} trait 정보 가중 업데이트 완료`);
+    console.log(` 사용자 ${uid}의 traits가 성공적으로 업데이트되었습니다.`);
 
-    //  최종 검증
     const updatedUser = await User.findOne({ uid });
     console.log(" DB 최종 저장된 traits:", updatedUser.traits);
 
@@ -332,6 +342,7 @@ traits: honestyHumility, emotionalStability, extraversion, conscientiousness, op
     console.error(" trait 업데이트 실패:", e.message);
   }
 }
+
 
 async function startInterventionSession(triggeredText, trigger, user, diaryObj) {
   console.log(` 트리거 감지: "${trigger}" → 개입 대화 시작`);
