@@ -89,7 +89,7 @@ router.post('/', async (req, res) => {
       diaryId,
       diaryDate,
       contents,
-      emotion: emotion.emotions,
+      emotion: emotion
     });
 
     await diary.save();
@@ -601,7 +601,7 @@ router.put('/:diaryId', async (req, res) => {
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
 
-    diary.emotion = emotion.emotions;
+    diary.emotion = emotion;
     await diary.save();
 
     res.status(200).json({
