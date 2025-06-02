@@ -457,12 +457,16 @@ router.get('/AlldiaryDates', async(req,res) =>{
  *                   type: string
  *                   format: date-time
  *                   description: 일기 생성 날짜 및 시간
+ *                 emotion:
+ *                   type: string
+ *                   description: 일기 감정 분석 결과
  *             example:
  *               _id: "60f7b1b3b3f3f3f3f3f3f3f3"
  *               uid: "user123"
  *               diaryDate: "2025-05-21"
  *               contents: ["오늘은 좋은 하루였다.", "친구들과 즐거운 시간을 보냈다."]
  *               createdAt: "2025-05-21T15:30:45.123Z"
+ *               emotion: {"emotions": {'fear':0.05, 'surprise':0.1, 'anger':0.1, 'sadness':0.15, 'disgust':0.05, 'neutral':0.2. 'happiness':0.3}}
  *       400:
  *         description: 잘못된 요청 - uid 또는 diaryDate 누락
  *         content:
@@ -561,14 +565,13 @@ router.put('/:diaryId', async (req, res) => {
 
     diary.contents = newContent;
     try{// 감정 분석하기
-      console.log("diary 정보는 다음과 같습니다: "+ diary);
       const user = await User.findOne({uid: diary.uid});
       if(!user) return res.status(404).json({error: "유저 정보 찾기 불가"});
-      console.log("유저 정보는 다음과 같습니다." + user.traits);
+    
       const responseContent = await emotionAnalysis(user.traits, newContent);
       if(!responseContent) return res.status(404).json({error:"Fail get emotion to context"});
       emotion = JSON.parse(responseContent);
-      console.log("감정 저장 분석 결과: emotion"+emotion);
+      
     }
     catch(e){
       console.log("Try-Catch 오류 : " + e);
