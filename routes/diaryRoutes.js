@@ -53,7 +53,7 @@ const {detectTrigger, getEmotionIntensity, sendToGPT, updateUserTraits, emotionA
  *         description: 서버 로직 오류
  */
 router.post('/', async (req, res) => {
-  const { uid, diaryId, diaryDate, content } = req.body; // content는 하나의 문자열 (Flutter에서 전달)
+  const { uid, diaryId, diaryDate, content } = req.body;
 
   try {
     const user = await User.findOne({ uid });
@@ -61,19 +61,37 @@ router.post('/', async (req, res) => {
 
     const contents = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
-    console.log("uid: " + uid + "\ndiaryID: " + diaryId + "\ndiaryDate: " + diaryDate + "\ncontents: " + contents);
+    console.log("uid:", uid);
+    console.log("diaryID:", diaryId);
+    console.log("diaryDate:", diaryDate);
+    console.log("contents:", contents);
 
     let emotion;
     try {
       const responseContent = await emotionAnalysis(user.traits, contents);
+
       if (!responseContent) return res.status(404).json({ error: "Fail get emotion to context" });
-      emotion = JSON.parse(responseContent);
+
+      // JSON 문자열만 추출
+      const jsonMatch = responseContent.match(/{[\s\S]*}/);
+      if (!jsonMatch) return res.status(400).json({ error: "Invalid JSON format from GPT" });
+
+      emotion = JSON.parse(jsonMatch[0]);
       console.log("감정 저장 분석 결과:", emotion);
+
     } catch (e) {
+      console.error("Emotion analysis error:", e);
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
 
-    const diary = new Diary({ uid, diaryId, diaryDate, contents, emotion: emotion.emotions });
+    const diary = new Diary({
+      uid,
+      diaryId,
+      diaryDate,
+      contents,
+      emotion: emotion.emotions,
+    });
+
     await diary.save();
 
     let interventionStarted = false;
@@ -106,26 +124,27 @@ router.post('/', async (req, res) => {
           await updateUserTraits(uid, contents, intervention.conversation);
           interventionStarted = true;
           firstIntervention = gptReply;
-          break; // 첫 개입만 실행
+          break;
         }
       }
     }
 
     if (interventionStarted) {
-      console.log(user.id + ': Diary saved & intervention started');
+      console.log(`${user.id}: Diary saved & intervention started`);
       return res.status(200).json({
         message: 'Diary saved & intervention started',
         gptReply: firstIntervention
       });
     } else {
       await updateUserTraits(uid, contents); // 개입 없이 trait 업데이트
-      console.log(user.id + ': Diary saved & intervention not started');
+      console.log(`${user.id}: Diary saved & intervention not started`);
       return res.status(201).json({
         message: 'Diary saved & intervention not started'
       });
     }
 
   } catch (err) {
+    console.error("Diary save error:", err);
     res.status(500).json({ error: err.message });
   }
 });
