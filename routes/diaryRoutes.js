@@ -57,32 +57,25 @@ router.post('/', async (req, res) => {
 
   try {
     const user = await User.findOne({ uid });
-    if (!user) return res.status(404).json({ error: 'User not found: '});
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 일기 contents 배열로 변환 (줄바꿈 기준)
     const contents = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
-    // 일기 저장
-    console.log("uid: " +uid +"\ndiaryID: " + diaryId + "\ndiaryDate: " + diaryDate + "\ncontents: +" +contents);
-    try{// 감정 분석하기
+    console.log("uid: " + uid + "\ndiaryID: " + diaryId + "\ndiaryDate: " + diaryDate + "\ncontents: " + contents);
+
+    let emotion;
+    try {
       const responseContent = await emotionAnalysis(user.traits, contents);
-      if(!responseContent) return res.status(404).json({error:"Fail get emotion to context"});
+      if (!responseContent) return res.status(404).json({ error: "Fail get emotion to context" });
       emotion = JSON.parse(responseContent);
-      console.log("감정 저장 분석 결과: emotion"+emotion);
+      console.log("감정 저장 분석 결과:", emotion);
+    } catch (e) {
+      return res.status(501).json({ error: "Fail analysis emotion" });
     }
-    catch(e){
-      return res.status(501).json({error:"Fail anlysis emotion"});
-    }
-    const diary = new Diary({
-      uid,
-      diaryId,
-      diaryDate,
-      contents,
-      emotion: emotion.emotions
-    });
+
+    const diary = new Diary({ uid, diaryId, diaryDate, contents, emotion: emotion.emotions });
     await diary.save();
 
-    //  트리거 + 감정 강도 검사
     let interventionStarted = false;
     let firstIntervention = null;
 
@@ -91,7 +84,6 @@ router.post('/', async (req, res) => {
       if (trigger) {
         const score = await getEmotionIntensity(line, user.traits);
         if (score >= user.interventionSensitivity) {
-          //  개입 세션 시작
           const messages = [
             { role: 'system', content: initialSystemPrompt },
             { role: 'user', content: line }
@@ -111,27 +103,33 @@ router.post('/', async (req, res) => {
             triggeredText: line
           });
 
-          //  traits 업데이트
           await updateUserTraits(uid, contents, intervention.conversation);
           interventionStarted = true;
           firstIntervention = gptReply;
-          break; // 첫 개입만
+          break; // 첫 개입만 실행
         }
       }
     }
 
     if (interventionStarted) {
-      console.log(user.id+': Diary saved & intervention started');
-      return res.status(200).json({ message: 'Diary saved & intervention started', gptReply: firstIntervention });
+      console.log(user.id + ': Diary saved & intervention started');
+      return res.status(200).json({
+        message: 'Diary saved & intervention started',
+        gptReply: firstIntervention
+      });
     } else {
-      console.log(user.id+': Diary saved & intervention not started');
-      return res.status(201).json({ message: 'Diary saved & intervention not started' });
+      await updateUserTraits(uid, contents); // 개입 없이 trait 업데이트
+      console.log(user.id + ': Diary saved & intervention not started');
+      return res.status(201).json({
+        message: 'Diary saved & intervention not started'
+      });
     }
 
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 /** 특정 유저의 특정 날짜에 작성된 가장 최신 일기 내용 조회 
  * @swagger
@@ -564,19 +562,26 @@ router.put('/:diaryId', async (req, res) => {
     }
 
     diary.contents = newContent;
-    try{// 감정 분석하기
-      const user = await User.findOne({uid: diary.uid});
-      if(!user) return res.status(404).json({error: "유저 정보 찾기 불가"});
-    
+
+    let emotion;
+    try {
+      const user = await User.findOne({ uid: diary.uid });
+      if (!user) return res.status(404).json({ error: "유저 정보 찾기 불가" });
+
       const responseContent = await emotionAnalysis(user.traits, newContent);
-      if(!responseContent) return res.status(404).json({error:"Fail get emotion to context"});
+      if (!responseContent) return res.status(404).json({ error: "Fail get emotion to context" });
       emotion = JSON.parse(responseContent);
-      
-    }
-    catch(e){
+
+      //  개입 없이 trait 업데이트 추가
+      // newContent가 string이므로 줄바꿈 기준 배열로 변환
+      const contents = newContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      await updateUserTraits(user.uid, contents);
+
+    } catch (e) {
       console.log("Try-Catch 오류 : " + e);
-      return res.status(501).json({error:"Fail anlysis emotion"});
+      return res.status(501).json({ error: "Fail analysis emotion" });
     }
+
     diary.emotion = emotion.emotions;
     await diary.save();
 
@@ -584,10 +589,12 @@ router.put('/:diaryId', async (req, res) => {
       message: 'Diary updated successfully',
       lastestContent: newContent,
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 /** 특정 일기 삭제
  * @swagger
