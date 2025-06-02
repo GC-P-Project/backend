@@ -267,7 +267,7 @@ async function encodeUserTraits(traits){
   console.log("Traits:  " + traits);
    const encodePrompt = (traits) =>`
     당신은 심리학 전문가로, 아래에 주어진 8가지 성격 지표(각각 0~1 float)와 각 지표에 대한 설명을 참고하여, 
-    개인의 성격 특징을 **간결한 한 문장**으로 종합 요약하는 AI입니다.  
+    입력으로 들어온 유저의 성격 특징을 **간결한 한 문장**으로 종합 요약하는 AI입니다.  
     한 줄 평가는 긍정적이면서도, 입력값의 높고 낮음을 반영해 특징적으로 작성합니다.  
     너무 일반적인 문장은 피하고, 높은 지표는 '강하다', '높다', '뚜렷하다' 등으로, 낮은 지표는 '차분하다', '신중하다', '조용하다' 등 상황에 따라 특징적으로 표현합니다.  
     항상 **존댓말**로 작성하세요.
@@ -294,12 +294,12 @@ async function encodeUserTraits(traits){
 
     [출력 예시]
     당신은 정직하고 침착한 성향이 두드러지며, 외향성과 개방성이 높아 새로운 도전에 적극적으로 임하는 타입입니다.
-
+    
     ---
 
     아래 형식으로 입력값을 받아, 종합적으로 1문장 평가만 출력하세요.
     오류가 발생하면 왜 오류가 나는지(예: traits의 특정 변수가 없습니다.) 반환하세요.
-    [입력]
+    [유저의 입력]
     honestyHumility: ${traits.honestyHumility}
     emotionalStability: ${traits.emotionalStability}
     extraversion: ${traits.extraversion}
@@ -309,7 +309,7 @@ async function encodeUserTraits(traits){
     needForCognition: ${traits.needForCognition}
     futureTimePerspective: ${traits.futureTimePerspective}
 
-    [출력]
+    [출력결과]
     (1문장 한줄평, 존댓말)
     `;
     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
