@@ -600,7 +600,7 @@ router.put('/:diaryId', async (req, res) => {
       console.log("Try-Catch 오류 : " + e);
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
-
+    console.log("diaryRoutes: emotion은 다음과 같습니다 \n" +emotion);
     diary.emotion = emotion;
     await diary.save();
     console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
