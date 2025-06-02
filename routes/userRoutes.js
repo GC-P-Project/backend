@@ -388,6 +388,5 @@ router.get('/getTotalTraits', async (req, res) => {
     console.log("userRoutes/getTotalTraits | Try-Catch error: "+e);
     return res.status(500).json({error: '서버 오류로 유저 성격 정보에 대한 한줄평을 생성하지 못했습니다.'});
   }
-  
 });
 module.exports = router;
