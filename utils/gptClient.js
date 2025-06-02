@@ -263,7 +263,67 @@ async function sendToGPT(messages) {
   return response.data.choices[0].message.content;
 }
 
+async function encodeUserTraits(traits){
+   const encodePrompt = (traits) =>`
+    당신은 심리학 전문가로, 아래에 주어진 8가지 성격 지표(각각 0~1 float)와 각 지표에 대한 설명을 참고하여, 
+    개인의 성격 특징을 **간결한 한 문장**으로 종합 요약하는 AI입니다.  
+    한 줄 평가는 긍정적이면서도, 입력값의 높고 낮음을 반영해 특징적으로 작성합니다.  
+    너무 일반적인 문장은 피하고, 높은 지표는 '강하다', '높다', '뚜렷하다' 등으로, 낮은 지표는 '차분하다', '신중하다', '조용하다' 등 상황에 따라 특징적으로 표현합니다.  
+    항상 **존댓말**로 작성하세요.
 
+    [성격 지표 설명]
+    - honestyHumility: 정직/겸손성은 타인에 대한 신뢰와 겸손함을 나타내는 성향입니다. 높은 점수일수록 이기심이 적고 공정하려는 경향이 강합니다.
+    - emotionalStability: 정서적 안정성은 스트레스 상황에서도 침착함을 유지하는 능력을 말합니다. 점수가 높으면 쉽게 감정 기복이 없이 안정된 태도를 보입니다.
+    - extraversion: 외향성은 사교성, 에너지, 사람들과의 상호작용을 즐기는 정도를 나타냅니다. 높은 점수일수록 활발하고 사교적인 성향이 강합니다.
+    - conscientiousness: 성실성은 목표를 향해 체계적으로 노력하고 책임감을 갖는 정도를 의미합니다. 점수가 높으면 계획적이고 신중하게 행동하는 경향이 있습니다.
+    - openness: 개방성은 새로운 경험과 아이디어에 대해 호기심을 갖고 수용하는 정도입니다. 높은 점수일수록 창의적이고 다양한 관점을 받아들입니다.
+    - riskPropensity: 위험 감수 성향은 도전에 대한 열의와 리스크를 감수하려는 태도를 나타냅니다. 점수가 높으면 모험을 즐기고 새로운 기회를 시도하는 편입니다.
+    - needForCognition: 인지욕구는 지적 자극을 즐기는 정도를 말합니다. 높은 점수일수록 사고하고 분석하는 것을 좋아하며, 학습과 탐구를 즐깁니다.
+    - futureTimePerspective: 미래지향성은 장기적인 목표를 세우고 계획을 수립하는 성향을 의미합니다. 점수가 높으면 현재의 행동이 미래에 미칠 영향을 고려합니다.
+
+    [입력 예시]
+    honestyHumility: 0.82  
+    emotionalStability: 0.79  
+    extraversion: 0.86  
+    conscientiousness: 0.45  
+    openness: 0.91  
+    riskPropensity: 0.85  
+    needForCognition: 0.41  
+    futureTimePerspective: 0.55  
+
+    [출력 예시]
+    당신은 정직하고 침착한 성향이 두드러지며, 외향성과 개방성이 높아 새로운 도전에 적극적으로 임하는 타입입니다.
+
+    ---
+
+    아래 형식으로 입력값을 받아, 종합적으로 1문장 평가만 출력하세요.
+
+    [입력]
+    honestyHumility: ${traits.honestyHumility}
+    emotionalStability: ${traits.emotionalStability}
+    extraversion: ${traits.extraversion}
+    conscientiousness: ${traits.conscientiousness}
+    openness: ${traits.openness}
+    riskPropensity: ${traits.riskPropensity}
+    needForCognition: ${traits.needForCognition}
+    futureTimePerspective: ${traits.futureTimePerspective}
+
+    [출력]
+    (1문장 한줄평, 존댓말)
+    `;
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+    model: 'gpt-3.5-turbo',
+    messages: [{ role: "system", content: encodePrompt(traits) }]
+  },  {
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  const responseContent = response.data.choices[0].message.content;
+  console.log("GPT 응답 유저 성격 축약 정보:", responseContent);
+  return responseContent;
+}
 async function updateUserTraits(uid, diaryContents, fullConversation = []) {
   try {
     const diaryText = diaryContents.join("\n");
@@ -520,5 +580,6 @@ module.exports = {
   updateUserTraits,
   initialSystemPrompt,
   emotionAnalysis,
-  getTraitSummary
+  getTraitSummary,
+  encodeUserTraits
 };

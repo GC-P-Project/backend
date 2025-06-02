@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const User = require('../models/UserModel'); // User 모델 불러오기
+const { encodeUserTraits } = require('../utils/gptClient');
 
 /**
  * @swagger
@@ -375,4 +376,17 @@ router.get('/:uid/traits/summary', async (req, res) => {
   }
 });
 
+router.get('/getTotalTraits', async (req, res) => {
+  try{
+    const traits = req.params.traits;
+    if(!traits) return res.status(404).json({error:"Traints정보를 찾을 수 없습니다."});
+    const result = encodeUserTraits(traits);
+    if(!result) return res.status(300).json({error: "유저 traits정보 생성이 되지 못했습니다."});
+    return res.status(200).json(result);
+  }catch(e){
+    console.log("userRoutes/getTotalTraits | Try-Catch error: "+e);
+    return res.status(500).json({error: '서버 오류로 유저 성격 정보에 대한 한줄평을 생성하지 못했습니다.'});
+  }
+  
+});
 module.exports = router;
