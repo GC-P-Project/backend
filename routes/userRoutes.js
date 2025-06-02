@@ -185,7 +185,7 @@ router.get('/', async (req, res) => {
 router.get('/:uid', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.params.uid });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: ' 특정 유저 조회 User not found' });
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -196,7 +196,7 @@ router.get('/:getUserUID', async(req,res) => {
   try{
     const userUID = await User.findOne({uid: req.params.id})
     console.log(req.params.id + " User: " + userUID);
-    if (!userUID) return res.status(404).json({ error: 'User not found' });
+    if (!userUID) return res.status(404).json({ error: ' 유저 uid 가져오기 User not found' });
     res.json(userUID);
   } catch(err){
     res.status(500).json({error:err.message});
@@ -236,7 +236,7 @@ router.put('/:uid', async (req, res) => {
     }
 
     const user = await User.findOneAndUpdate({ uid: req.params.uid }, updateData, { new: true });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: '특정 유저 설정 User not found' });
 
     res.json(user);
   } catch (err) {
@@ -264,7 +264,7 @@ router.put('/:uid', async (req, res) => {
 router.delete('/:uid', async (req, res) => {
   try {
     const user = await User.findOneAndDelete({ uid: req.params.uid });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: '특정 유저 삭제 User not found' });
 
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
@@ -386,7 +386,9 @@ router.get('/getTotalTraits', async (req, res) => {
     return res.status(200).json(result);
   }catch(e){
     console.log("userRoutes/getTotalTraits | Try-Catch error: "+e);
-    return res.status(500).json({error: '서버 오류로 유저 성격 정보에 대한 한줄평을 생성하지 못했습니다.'});
+    return res.status(500).json({error: '서버 오류로 유저 성격 정보에 대한 한줄평을 생성하지 못했습니다.' + e});
   }
 });
+
+
 module.exports = router;
