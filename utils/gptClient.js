@@ -242,6 +242,7 @@ async function emotionAnalysis(traits, text){
       'Content-Type': 'application/json'
     }
   });
+  console.log("GPT 응답 원문 확인:", responseContent);
   return response.data.choices[0].message.content;
 }
 async function sendToGPT(messages) {
@@ -424,9 +425,6 @@ async function startDiaryWriting() {
     process.exit(0);
   });
 }
-
-const axios = require('axios');
-const User = require('../models/UserModel');
 
 async function getTraitSummary(uid) {
   try {
