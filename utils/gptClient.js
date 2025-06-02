@@ -264,6 +264,9 @@ async function sendToGPT(messages) {
 }
 
 async function encodeUserTraits(traits){
+  console.log(typeof traits);
+  const transTraits = JSON.parse(traits);
+  console.log(typeof transTraits);
   console.log("Traits:  " + traits);
    const encodePrompt =`
     당신은 심리학 전문가로, 아래에 주어진 8가지 성격 지표(각각 0~1 float)와 각 지표에 대한 설명을 참고하여, 
@@ -297,14 +300,14 @@ async function encodeUserTraits(traits){
     `;
 
     const userPrompt =`
-    honestyHumility: ${traits.honestyHumility}
-    emotionalStability: ${traits.emotionalStability}
-    extraversion: ${traits.extraversion}
-    conscientiousness: ${traits.conscientiousness}
-    openness: ${traits.openness}
-    riskPropensity: ${traits.riskPropensity}
-    needForCognition: ${traits.needForCognition}
-    futureTimePerspective: ${traits.futureTimePerspective}
+    honestyHumility: ${transTraits.honestyHumility}
+    emotionalStability: ${transTraits.emotionalStability}
+    extraversion: ${transTraits.extraversion}
+    conscientiousness: ${transTraits.conscientiousness}
+    openness: ${transTraits.openness}
+    riskPropensity: ${transTraits.riskPropensity}
+    needForCognition: ${transTraits.needForCognition}
+    futureTimePerspective: ${transTraits.futureTimePerspective}
     `;
     console.log("UserPrompt 내역: " + userPrompt);
     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
