@@ -85,7 +85,8 @@ router.post('/', async (req, res) => {
       console.error("Emotion analysis error:", e);
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
-    console.log("이모션스: "+ emotions.emotions);
+    console.log("이모션스: "+ emotions);
+    console.log("이모션스 타입: " + typeof(emotions));
     const diary = new Diary({
       uid,
       diaryId,
