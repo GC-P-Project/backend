@@ -93,7 +93,7 @@ router.post('/', async (req, res) => {
       diaryId,
       diaryDate,
       contents,
-      emotion:emotions.emotions,
+      emotion:emotions,
     });
     
     // await diary.save();
@@ -612,7 +612,7 @@ router.put('/:diaryId', async (req, res) => {
       const responseContent = await emotionAnalysis(user.traits, newContent);
       if (!responseContent) return res.status(404).json({ error: "Fail get emotion to context" });
       emotions = JSON.parse(responseContent);
-      console.log("EMOTION 분석 결과: " + emotions);
+      console.log("EMOTION 분석 결과: " + JSON.stringify(emotions));
       //  개입 없이 trait 업데이트 추가
       // newContent가 string이므로 줄바꿈 기준 배열로 변환
       const contents = newContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -623,17 +623,7 @@ router.put('/:diaryId', async (req, res) => {
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
     console.log("diaryRoutes: emotion은 다음과 같습니다 \n" +emotions);
-    const processedEmotions = {
-        fear: Number(emotions.fear) || 0.0,
-        surprise: Number(emotions.surprise) || 0.0,
-        anger: Number(emotions.anger) || 0.0,
-        sadness: Number(emotions.sadness) || 0.0,
-        neutral: Number(emotions.neutral) || 1.0,
-        happiness: Number(emotions.happiness) || 0.0,
-        disgust: Number(emotions.disgust) || 0.0
-      };
-    await diary.set('emotion', processedEmotions);
-    diary.emotion = processedEmotions.emotions;
+    diary.emotion = emotions;
     await diary.save();
     console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
     res.status(200).json({
