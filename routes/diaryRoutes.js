@@ -80,6 +80,13 @@ router.post('/', async (req, res) => {
       console.log("JsonMatch 결과: "+jsonMatch);
       emotions = JSON.parse(jsonMatch[0]);
       console.log("감정 저장 분석 결과:", emotions);
+      console.log("emotion 필드 존재:", 'emotion' in Diary.schema.paths);
+
+      if (Diary.schema.paths.emotion) {
+        console.log("✅ emotion 필드가 스키마에 있습니다");
+      } else {
+        console.log("❌ emotion 필드가 스키마에 없습니다!");
+      }
       const diary = new Diary({
         uid,
         diaryId,
