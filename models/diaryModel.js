@@ -17,15 +17,6 @@ const diarySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-
-  createdAt: {
-    type: Date,
-    default: Date.now, // 생성 시간 자동 기록
-  },
-  contents: {
-    type: [String], // 일기 내용 배열 (수정 버전별 저장)
-    default: [],
-  },
   emotion: {
     fear: { type: Number, default: 0.0 },
     surprise: { type: Number, default: 0.0 },
@@ -35,6 +26,15 @@ const diarySchema = new mongoose.Schema({
     happiness: { type: Number, default: 0.0 },
     disgust: { type: Number, default: 0.0 }
   },
+  createdAt: {
+    type: Date,
+    default: Date.now, // 생성 시간 자동 기록
+  },
+  contents: {
+    type: [String], // 일기 내용 배열 (수정 버전별 저장)
+    default: [],
+  },
+  
 });
 
 module.exports = mongoose.models.Diary || mongoose.model('Diary', diarySchema);

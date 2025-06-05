@@ -94,16 +94,17 @@ router.post('/', async (req, res) => {
       happiness: Number(emotions.happiness) || 0.0,
       disgust: Number(emotions.disgust) || 0.0
     };
+    console.log("PROCESSEDEMOTION: " +processedEmotions);
     const diary = new Diary({
       uid,
       diaryId,
       diaryDate,
       contents,
-      emotion: processedEmotions
     });
-
+    
     // await diary.save();
     try {
+      diary.set('emotion', processedEmotions);
       console.log("저장 시도 중...", diary);
       const savedDiary = await diary.save();
       console.log("저장 성공! ID:", savedDiary._id);
@@ -638,7 +639,8 @@ router.put('/:diaryId', async (req, res) => {
         happiness: Number(emotions.happiness) || 0.0,
         disgust: Number(emotions.disgust) || 0.0
       };
-    diary.emotion = processedEmotions;
+    diary.set('emotion', processedEmotions);
+    // diary.emotion = processedEmotions;
     await diary.save();
     console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
     res.status(200).json({
