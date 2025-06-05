@@ -102,8 +102,26 @@ router.post('/', async (req, res) => {
       emotion: processedEmotions
     });
 
-    await diary.save();
-
+    // await diary.save();
+    try {
+      console.log("저장 시도 중...", diary);
+      const savedDiary = await diary.save();
+      console.log("저장 성공! ID:", savedDiary._id);
+      return res.status(200).json({ message: "Success", id: savedDiary._id });
+      
+    } catch (saveError) {
+      console.error("=== 저장 실패 상세 정보 ===");
+      console.error("Error name:", saveError.name);
+      console.error("Error message:", saveError.message);
+      console.error("Error stack:", saveError.stack);
+      console.error("Error details:", saveError);
+      
+      return res.status(500).json({ 
+        error: "Save failed", 
+        details: saveError.message,
+        name: saveError.name
+      });
+    }
     let interventionStarted = false;
     let firstIntervention = null;
 
