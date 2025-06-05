@@ -85,22 +85,12 @@ router.post('/', async (req, res) => {
       console.error("Emotion analysis error:", e);
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
-    const processedEmotions = {
-      fear: Number(emotions.fear) || 0.0,
-      surprise: Number(emotions.surprise) || 0.0,
-      anger: Number(emotions.anger) || 0.0,
-      sadness: Number(emotions.sadness) || 0.0,
-      neutral: Number(emotions.neutral) || 1.0,
-      happiness: Number(emotions.happiness) || 0.0,
-      disgust: Number(emotions.disgust) || 0.0
-    };
-    console.log("PROCESSEDEMOTION: " +processedEmotions);
     const diary = new Diary({
       uid,
       diaryId,
       diaryDate,
       contents,
-      emotion:emotions.emotion
+      emotion:emotions.emotions,
     });
     
     // await diary.save();
@@ -640,7 +630,7 @@ router.put('/:diaryId', async (req, res) => {
         happiness: Number(emotions.happiness) || 0.0,
         disgust: Number(emotions.disgust) || 0.0
       };
-    diary.set('emotion', processedEmotions);
+    await diary.set('emotion', processedEmotions);
     diary.emotion = processedEmotions.emotions;
     await diary.save();
     console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
