@@ -267,7 +267,7 @@ async function encodeUserTraits(traits){
   console.log(typeof traits);
   const transTraits = JSON.parse(traits);
   console.log(typeof transTraits);
-  console.log("Traits:  " + traits);
+  console.log("Traits:  " + transTraits);
    const encodePrompt =`
     당신은 심리학 전문가로, 아래에 주어진 8가지 성격 지표(각각 0~1 float)와 각 지표에 대한 설명을 참고하여, 
     입력으로 들어온 유저의 성격 특징을 **간결한 한 문장**으로 종합 요약하는 AI입니다.  

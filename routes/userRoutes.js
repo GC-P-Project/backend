@@ -382,8 +382,9 @@ router.get('/:traits/getTotalTraits', async (req, res) => {
     console.log("req.param.traits: " + req.params.traits);
     if(!traits) return res.status(404).json({error:"Traints정보를 찾을 수 없습니다."});
     const result = encodeUserTraits(traits);
+    console.log("반환 result: " + result);
     if(!result) return res.status(300).json({error: "유저 traits정보 생성이 되지 못했습니다."});
-    return res.status(200).json(result);
+    return res.status(200).json({diagnosis: result});
   }catch(e){
     console.log("userRoutes/getTotalTraits | Try-Catch error: "+e);
     return res.status(500).json({error: '서버 오류로 유저 성격 정보에 대한 한줄평을 생성하지 못했습니다.' + e});
