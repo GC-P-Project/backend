@@ -100,6 +100,7 @@ router.post('/', async (req, res) => {
       diaryId,
       diaryDate,
       contents,
+      emotion:emotions.emotion
     });
     
     // await diary.save();
@@ -640,7 +641,7 @@ router.put('/:diaryId', async (req, res) => {
         disgust: Number(emotions.disgust) || 0.0
       };
     diary.set('emotion', processedEmotions);
-    // diary.emotion = processedEmotions;
+    diary.emotion = processedEmotions.emotions;
     await diary.save();
     console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
     res.status(200).json({
