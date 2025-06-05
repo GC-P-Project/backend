@@ -35,5 +35,5 @@ const diarySchema = new mongoose.Schema({
   },
   
 });
-
+delete mongoose.connection.models['Diary'];
 module.exports = mongoose.models.Diary || mongoose.model('Diary', diarySchema);
