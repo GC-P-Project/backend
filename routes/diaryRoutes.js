@@ -79,7 +79,15 @@ router.post('/', async (req, res) => {
       console.log("JsonMatch 결과: "+jsonMatch);
       emotions = JSON.parse(jsonMatch[0]);
       console.log("감정 저장 분석 결과:", emotions);
-
+      const processedEmotions = {
+        fear: Number(emotions.fear) || 0.0,
+        surprise: Number(emotions.surprise) || 0.0,
+        anger: Number(emotions.anger) || 0.0,
+        sadness: Number(emotions.sadness) || 0.0,
+        neutral: Number(emotions.neutral) || 1.0,
+        happiness: Number(emotions.happiness) || 0.0,
+        disgust: Number(emotions.disgust) || 0.0
+      };
     } catch (e) {
       console.error("Emotion analysis error:", e);
       return res.status(501).json({ error: "Fail analysis emotion" });
@@ -90,7 +98,7 @@ router.post('/', async (req, res) => {
       diaryId,
       diaryDate,
       contents,
-      emotion: emotions
+      emotion: processedEmotions
     });
 
     await diary.save();
@@ -602,7 +610,16 @@ router.put('/:diaryId', async (req, res) => {
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
     console.log("diaryRoutes: emotion은 다음과 같습니다 \n" +emotions);
-    diary.emotion = emotions;
+    const processedEmotions = {
+        fear: Number(emotions.fear) || 0.0,
+        surprise: Number(emotions.surprise) || 0.0,
+        anger: Number(emotions.anger) || 0.0,
+        sadness: Number(emotions.sadness) || 0.0,
+        neutral: Number(emotions.neutral) || 1.0,
+        happiness: Number(emotions.happiness) || 0.0,
+        disgust: Number(emotions.disgust) || 0.0
+      };
+    diary.emotion = processedEmotions;
     await diary.save();
     console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
     res.status(200).json({
