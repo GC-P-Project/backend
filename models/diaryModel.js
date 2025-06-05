@@ -11,8 +11,7 @@ const diarySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  
-  diaryDate:{
+  diaryDate: {
     type: String,
     required: true,
     unique: true,

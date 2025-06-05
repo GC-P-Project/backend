@@ -80,6 +80,14 @@ router.post('/', async (req, res) => {
       console.log("JsonMatch 결과: "+jsonMatch);
       emotions = JSON.parse(jsonMatch[0]);
       console.log("감정 저장 분석 결과:", emotions);
+      const diary = new Diary({
+        uid,
+        diaryId,
+        diaryDate,
+        contents,
+        emotion: emotions}
+      );
+      await diary.save();
       
     } catch (e) {
       console.error("Emotion analysis error:", e);
@@ -93,15 +101,7 @@ router.post('/', async (req, res) => {
     Object.entries(emotions).forEach(([key, value]) => {
       console.log(`${key}: ${value}, 타입: ${typeof value}`);
     });
-    const diary = new Diary({
-      uid,
-      diaryId,
-      diaryDate,
-      contents,
-      emotion: emotions}
-    );
     
-    await diary.save();
     
     let interventionStarted = false;
     let firstIntervention = null;
