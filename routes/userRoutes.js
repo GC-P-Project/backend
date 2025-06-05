@@ -381,8 +381,10 @@ router.get('/:traits/getTotalTraits', async (req, res) => {
     const traits = req.params.traits;
     console.log("req.param.traits: " + req.params.traits);
     if(!traits) return res.status(404).json({error:"Traints정보를 찾을 수 없습니다."});
+
     const result = await encodeUserTraits(traits);
     if(!result) return res.status(300).json({error: "유저 traits정보 생성이 되지 못했습니다."});
+    
     return res.status(200).json({diagnosis: result});
   }catch(e){
     console.log("userRoutes/getTotalTraits | Try-Catch error: "+e);
