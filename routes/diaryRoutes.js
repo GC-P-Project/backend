@@ -85,7 +85,7 @@ router.post('/', async (req, res) => {
         diaryId,
         diaryDate,
         contents,
-        emotion: emotions}
+        emotion: responseContent}
       );
       await diary.save();
       
