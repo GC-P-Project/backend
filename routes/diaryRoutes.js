@@ -85,6 +85,7 @@ router.post('/', async (req, res) => {
       console.error("Emotion analysis error:", e);
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
+    console.log("이모션스: "+ emotions.emotions);
     const diary = new Diary({
       uid,
       diaryId,
@@ -95,7 +96,6 @@ router.post('/', async (req, res) => {
     
     // await diary.save();
     try {
-      diary.set('emotion', processedEmotions);
       console.log("저장 시도 중...", diary);
       const savedDiary = await diary.save();
       console.log("저장 성공! ID:", savedDiary._id);
