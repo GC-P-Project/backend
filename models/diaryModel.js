@@ -18,13 +18,16 @@ const diarySchema = new mongoose.Schema({
     unique: true,
   },
   emotion: {
-    fear: { type: Number, default: 0.0 },
-    surprise: { type: Number, default: 0.0 },
-    anger: { type: Number, default: 0.0 },
-    sadness: { type: Number, default: 0.0 },
-    neutral: { type: Number, default: 1.0 },
-    happiness: { type: Number, default: 0.0 },
-    disgust: { type: Number, default: 0.0 }
+    type: Object,
+    emotion:{
+      fear: { type: Number, default: 0.0 },
+      surprise: { type: Number, default: 0.0 },
+      anger: { type: Number, default: 0.0 },
+      sadness: { type: Number, default: 0.0 },
+      neutral: { type: Number, default: 1.0 },
+      happiness: { type: Number, default: 0.0 },
+      disgust: { type: Number, default: 0.0 }
+    }
   },
   createdAt: {
     type: Date,
