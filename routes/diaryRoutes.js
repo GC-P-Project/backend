@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
 
       if (!responseContent) return res.status(404).json({ error: "Fail get emotion to context" });
       console.log("ResponseContent: " + responseContent);
-      
+
       // JSON 문자열만 추출
       const jsonMatch = responseContent.match(/{[\s\S]*}/);
       if (!jsonMatch) return res.status(400).json({ error: "Invalid JSON format from GPT" });
@@ -90,7 +90,7 @@ router.post('/', async (req, res) => {
       diaryId,
       diaryDate,
       contents,
-      emotion: emotion
+      emotion: jsonmatch
     });
 
     await diary.save();
