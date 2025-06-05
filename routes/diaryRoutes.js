@@ -75,7 +75,7 @@ router.post('/', async (req, res) => {
       // JSON 문자열만 추출
       const jsonMatch = responseContent.match(/{[\s\S]*}/);
       if (!jsonMatch) return res.status(400).json({ error: "Invalid JSON format from GPT" });
-
+      console.log("JsonMatch 결과: "+jsonMatch);
       emotion = JSON.parse(jsonMatch[0]);
       console.log("감정 저장 분석 결과:", emotion);
 
@@ -590,7 +590,7 @@ router.put('/:diaryId', async (req, res) => {
       const responseContent = await emotionAnalysis(user.traits, newContent);
       if (!responseContent) return res.status(404).json({ error: "Fail get emotion to context" });
       emotion = JSON.parse(responseContent);
-
+      console.log("EMOTION 분석 결과: " + emotion);
       //  개입 없이 trait 업데이트 추가
       // newContent가 string이므로 줄바꿈 기준 배열로 변환
       const contents = newContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
