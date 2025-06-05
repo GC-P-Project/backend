@@ -87,6 +87,7 @@ router.post('/', async (req, res) => {
     }
     console.log("이모션스: "+ emotions);
     console.log("이모션스 타입: " + typeof(emotions));
+    console.log("이모션스 stringfy: " + JSON.stringify(emotions));
     const diary = new Diary({
       uid,
       diaryId,
