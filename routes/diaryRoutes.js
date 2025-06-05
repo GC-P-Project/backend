@@ -88,6 +88,11 @@ router.post('/', async (req, res) => {
     console.log("이모션스: "+ emotions);
     console.log("이모션스 타입: " + typeof(emotions));
     console.log("이모션스 stringfy: " + JSON.stringify(emotions));
+    console.log("emotions:", emotions); // 객체 그대로
+    console.log("emotions stringified:", JSON.stringify(emotions)); // 문자열
+    Object.entries(emotions).forEach(([key, value]) => {
+      console.log(`${key}: ${value}, 타입: ${typeof value}`);
+    });
     const diary = new Diary({
       uid,
       diaryId,
