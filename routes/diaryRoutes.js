@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
     console.log("diaryDate:", diaryDate);
     console.log("contents:", contents);
 
-    let emotion;
+    let emotions;
     try {
       const responseContent = await emotionAnalysis(user.traits, contents);
 
@@ -77,8 +77,8 @@ router.post('/', async (req, res) => {
       const jsonMatch = responseContent.match(/{[\s\S]*}/);
       if (!jsonMatch) return res.status(400).json({ error: "Invalid JSON format from GPT" });
       console.log("JsonMatch 결과: "+jsonMatch);
-      emotion = JSON.parse(jsonMatch[0]);
-      console.log("감정 저장 분석 결과:", emotion);
+      emotions = JSON.parse(jsonMatch[0]);
+      console.log("감정 저장 분석 결과:", emotions);
 
     } catch (e) {
       console.error("Emotion analysis error:", e);
@@ -90,7 +90,7 @@ router.post('/', async (req, res) => {
       diaryId,
       diaryDate,
       contents,
-      emotion: jsonmatch
+      emotion: emotions
     });
 
     await diary.save();
@@ -583,15 +583,15 @@ router.put('/:diaryId', async (req, res) => {
 
     diary.contents = newContent;
 
-    let emotion;
+    let emotions;
     try {
       const user = await User.findOne({ uid: diary.uid });
       if (!user) return res.status(404).json({ error: "유저 정보 찾기 불가" });
 
       const responseContent = await emotionAnalysis(user.traits, newContent);
       if (!responseContent) return res.status(404).json({ error: "Fail get emotion to context" });
-      emotion = JSON.parse(responseContent);
-      console.log("EMOTION 분석 결과: " + emotion);
+      emotions = JSON.parse(responseContent);
+      console.log("EMOTION 분석 결과: " + emotions);
       //  개입 없이 trait 업데이트 추가
       // newContent가 string이므로 줄바꿈 기준 배열로 변환
       const contents = newContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -601,8 +601,8 @@ router.put('/:diaryId', async (req, res) => {
       console.log("Try-Catch 오류 : " + e);
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
-    console.log("diaryRoutes: emotion은 다음과 같습니다 \n" +emotion);
-    diary.emotion = emotion;
+    console.log("diaryRoutes: emotion은 다음과 같습니다 \n" +emotions);
+    diary.emotion = emotions;
     await diary.save();
     console.log("diaryRoutes: 다이어리 수정이 완료되었습니다.");
     res.status(200).json({
