@@ -67,6 +67,7 @@ router.post('/', async (req, res) => {
     console.log("contents:", contents);
 
     let emotions;
+    
     try {
       const responseContent = await emotionAnalysis(user.traits, contents);
 
@@ -79,20 +80,20 @@ router.post('/', async (req, res) => {
       console.log("JsonMatch 결과: "+jsonMatch);
       emotions = JSON.parse(jsonMatch[0]);
       console.log("감정 저장 분석 결과:", emotions);
-      const processedEmotions = {
-        fear: Number(emotions.fear) || 0.0,
-        surprise: Number(emotions.surprise) || 0.0,
-        anger: Number(emotions.anger) || 0.0,
-        sadness: Number(emotions.sadness) || 0.0,
-        neutral: Number(emotions.neutral) || 1.0,
-        happiness: Number(emotions.happiness) || 0.0,
-        disgust: Number(emotions.disgust) || 0.0
-      };
+      
     } catch (e) {
       console.error("Emotion analysis error:", e);
       return res.status(501).json({ error: "Fail analysis emotion" });
     }
-
+    const processedEmotions = {
+      fear: Number(emotions.fear) || 0.0,
+      surprise: Number(emotions.surprise) || 0.0,
+      anger: Number(emotions.anger) || 0.0,
+      sadness: Number(emotions.sadness) || 0.0,
+      neutral: Number(emotions.neutral) || 1.0,
+      happiness: Number(emotions.happiness) || 0.0,
+      disgust: Number(emotions.disgust) || 0.0
+    };
     const diary = new Diary({
       uid,
       diaryId,
