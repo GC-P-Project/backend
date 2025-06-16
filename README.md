@@ -20,28 +20,19 @@ MONGO_URI= [MONGO DB ATLAS URL]
 GPT_API = [GPT API KEY]
 
 <h2>Directory Architecure</h2>
+
 ├── controllers/ (test)
 
 
 ├── models/ (MongoDB schema)
 
-│ ├── diaryModel.js # Diary
 
-│ ├── userModel.js  # USer
-
-│ ├── interventionLog.js # GPT
 
 
 
 ├── routes/ (Rest API)
 
-│ ├── diaryRoutes.js # Diary
 
-│ ├── userRoutes.js  # USer
-
-│ ├── index.js  # Default
-
-│ ├── interventionRoutes.js # GPT function
 
 
 ├── utils (test)
