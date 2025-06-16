@@ -14,8 +14,10 @@ npm install
 MongoDB: 사용자, 일기 데이터 저장 및 관리
 
 
-.env 파일에 아래 내용 추가:
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/<dbname>?retryWrites=true&w=majority
+Add .env file to root directory:
+port= [PORTNUBER]
+MONGO_URI= [MONGO_DB_ATLAS URL]
+GPT_API = [GPT API KEY]
 
 Node.js 백엔드 실행: node server.js
 
